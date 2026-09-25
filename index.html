@@ -2,32 +2,331 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <!-- タブレットの画面サイズにぴったり合わせ、勝手なズームを防ぐ設定 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>遊ゆうスペース 入退室管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>遊ゆうスペース うけつけ</title>
   <style>
-    /* 画面の余白を完全になくし、スクロールバーを非表示にする */
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: #ffffff;
-    }
-    /* GASの画面をタブレットの画面いっぱいに広げる */
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #f7f9fc; color: #2c3e50; min-height: 100vh; user-select: none; display: flex; flex-direction: column; }
+    header { background-color: #34495e; color: white; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    header h1 { margin: 0; font-size: 26px; letter-spacing: 2px; }
+    .container { flex: 1; max-width: 520px; width: 92%; margin: 20px auto; background: white; padding: 25px 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); box-sizing: border-box; }
+    
+    /* 画面切り替え制御 */
+    .view-screen { display: none; text-align: center; }
+    .view-screen.active { display: block; }
+
+    /* メインボタンスタイル */
+    .btn-main { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 30px 15px; font-size: 26px; font-weight: bold; color: white; border: none; border-radius: 16px; cursor: pointer; text-decoration: none; box-shadow: 0 6px 12px rgba(0,0,0,0.12); margin-bottom: 20px; box-sizing: border-box; }
+    .btn-main:active { transform: scale(0.97); }
+    .btn-in { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .btn-out { background: linear-gradient(135deg, #ff7675, #d63031); margin-bottom: 0; }
+    .btn-icon { font-size: 50px; margin-bottom: 5px; }
+    .btn-subtext { font-size: 15px; font-weight: normal; margin-top: 5px; opacity: 0.9; }
+
+    /* 汎用ボタン */
+    .btn { display: block; width: 100%; box-sizing: border-box; padding: 16px; margin: 12px 0; font-size: 19px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    .btn-purpose { background-color: #f1f2f6; color: #57606f; border: 3px solid #ced6e0; font-size: 20px; }
+    .btn-purpose.selected-play { background-color: #ff7675; color: white; border-color: #d63031; }
+    .btn-purpose.selected-study { background-color: #74b9ff; color: white; border-color: #0984e3; }
+    .btn-next { background-color: #2ecc71; font-size: 20px; }
+    .btn-next:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+    .btn-switch { background-color: #6c5ce7; font-size: 15px; padding: 12px; }
+    .btn-submit { background-color: #2ecc71; font-size: 20px; }
+    .btn-gray { background-color: #7f8c8d; font-size: 15px; padding: 12px; }
+
+    /* バーコードスキャン枠 */
+    .barcode-box { background: #eef9ff; border: 3px dashed #3498db; border-radius: 12px; padding: 20px 10px; margin: 15px 0; }
+    .barcode-input { width: 85%; padding: 12px; font-size: 24px; text-align: center; border: 2px solid #3498db; border-radius: 8px; margin: 10px auto; display: block; font-weight: bold; }
+    .status-msg { font-size: 15px; font-weight: bold; color: #e67e22; min-height: 22px; }
+
+    /* テンキー */
+    .display-box { font-size: 32px; font-weight: bold; background: #dfe6e9; padding: 12px; border-radius: 8px; margin-bottom: 15px; min-height: 38px; color: #2d3436; }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 320px; margin: 0 auto 15px auto; }
+    .key { background: #ffffff; border: 2px solid #b2bec3; font-size: 26px; font-weight: bold; padding: 16px 0; border-radius: 10px; cursor: pointer; }
+    .key:active { background: #dfe6e9; }
+    .key.clear { background: #ff7675; color: white; border-color: #d63031; }
+
+    /* 結果画面 */
+    .result-box { background: #e8f8f5; border: 2px dashed #2ecc71; padding: 15px; border-radius: 8px; margin-top: 15px; }
+    .result-box.out { background: #fff5f5; border-color: #ff7675; }
+    .num-display { font-size: 56px; font-weight: bold; color: #e74c3c; margin: 10px 0; }
+    .auto-timer { font-size: 13px; color: #7f8c8d; margin-top: 10px; font-weight: bold; }
+
+    footer { text-align: center; padding: 15px; color: #95a5a6; font-size: 12px; }
   </style>
 </head>
 <body>
 
-  <!-- ★最重要：下の「https://google.com〜」の部分を、あなたのGASの【ウェブアプリURL】に書き換えてください -->
-  <iframe src="https://script.google.com/macros/s/AKfycbyMrr61Ru5R67qcPi_cbIZevqX_80FCxmtWLKV8oeTlTQ0cMktmg_bZ34ULgzQ2uSaKfQ/exec"></iframe>
+  <header>
+    <h1>🛝 遊ゆうスペース うけつけ ✏️</h1>
+  </header>
 
+  <div class="container">
+
+    <!-- 1. トップメニュー (旧 PageIO) -->
+    <div id="screen-top" class="view-screen active">
+      <button class="btn-main btn-in" onclick="openCheckIn()">
+        <span class="btn-icon">🛝</span>
+        <span>にゅうしつ（入室）</span>
+        <span class="btn-subtext">あそび・べんきょう に きたひと</span>
+      </button>
+      <button class="btn-main btn-out" onclick="openCheckOut()">
+        <span class="btn-icon">🚪</span>
+        <span>たいしつ（退室）</span>
+        <span class="btn-subtext">おうちに かえるひと</span>
+      </button>
+    </div>
+
+    <!-- 2. 入室 - 目的選択 -->
+    <div id="screen-in-purpose" class="view-screen">
+      <h3>きょうは なにしにきたかな？</h3>
+      <button type="button" id="btn-play" class="btn btn-purpose" onclick="togglePurpose('遊び')">🛝 あそび</button>
+      <button type="button" id="btn-study" class="btn btn-purpose" onclick="togglePurpose('べんきょう')">✏️ べんきょう</button>
+      <button type="button" id="btn-goto-scan" class="btn btn-next" onclick="showScreen('screen-in-scan'); focusBarcodeInput();" disabled>えらんだら ここをおしてね 👉</button>
+      <button type="button" class="btn btn-gray" onclick="showScreen('screen-top')">🏠 もどる</button>
+    </div>
+
+    <!-- 3. 入室 - バーコードスキャン -->
+    <div id="screen-in-scan" class="view-screen">
+      <div class="barcode-box">
+        <div style="font-size: 50px;">📟</div>
+        <h2 style="margin: 5px 0; color: #2980b9;">カードのバーコードを<br>「ピッ」としてね！</h2>
+        <input type="text" id="barcode-input" class="barcode-input" placeholder="ここをピッ！" autocomplete="off" oninput="autoToHalfWidth(this)" onkeydown="handleBarcodeKey(event)">
+        <div id="scan-status" class="status-msg">リーダーを向けてスキャンしてください</div>
+      </div>
+      <button type="button" class="btn btn-switch" onclick="showScreen('screen-in-manual')">カードがない / はじめてのひと</button>
+      <button type="button" class="btn btn-gray" onclick="showScreen('screen-in-purpose')">⬅️ もどる</button>
+    </div>
+
+    <!-- 4. 入室 - 手入力 -->
+    <div id="screen-in-manual" class="view-screen">
+      <h3>カードがない・はじめての ひと</h3>
+      <div style="text-align: left; font-weight: bold; margin-top: 10px;">① IDが わかるひと</div>
+      <input type="text" id="manual-id" style="width:100%; padding:12px; font-size:18px; box-sizing:border-box;" placeholder="例: 260001" inputmode="numeric" oninput="autoToHalfWidth(this)">
+      <div style="margin: 10px 0; font-weight: bold; color: #7f8c8d;">── または ──</div>
+      <div style="text-align: left; font-weight: bold;">② はじめて / IDが わからないひと</div>
+      <input type="text" id="manual-name" style="width:100%; padding:12px; font-size:18px; box-sizing:border-box;" placeholder="なまえ（フルネーム）">
+      <button type="button" class="btn btn-submit" style="margin-top:15px;" onclick="submitManualEntry()">これで うけつけする</button>
+      <button type="button" class="btn btn-switch" onclick="showScreen('screen-in-scan'); focusBarcodeInput();">📟 バーコードを つかう</button>
+      <button type="button" class="btn btn-gray" onclick="showScreen('screen-in-purpose')">⬅️ もどる</button>
+    </div>
+
+    <!-- 5. 入室 - 完了画面 -->
+    <div id="screen-in-result" class="view-screen">
+      <div class="result-box">
+        <h2 id="in-result-name">うけつけ できたよ！</h2>
+        <p>きょうの ばんごうは</p>
+        <div id="in-result-num" class="num-display">-</div>
+        <p style="font-weight: bold; font-size: 16px;">このばんごうの「にゅうしつカード」を<br>せんせい から もらってね！</p>
+      </div>
+      <button type="button" class="btn btn-submit" style="background-color:#34495e; margin-top:20px;" onclick="showScreen('screen-top')">🏠 さいしょの がめんへ</button>
+      <div id="in-timer" class="auto-timer">5 秒後に さいしょの画面へ もどります</div>
+    </div>
+
+    <!-- 6. 退室 - テンキー入力 -->
+    <div id="screen-out-input" class="view-screen">
+      <h3>きょうの「にゅうしつカード」の<br>ばんごうを おしてね！</h3>
+      <div id="out-number-display" class="display-box"></div>
+      <div class="keypad">
+        <button class="key" onclick="pressOutKey('1')">1</button>
+        <button class="key" onclick="pressOutKey('2')">2</button>
+        <button class="key" onclick="pressOutKey('3')">3</button>
+        <button class="key" onclick="pressOutKey('4')">4</button>
+        <button class="key" onclick="pressOutKey('5')">5</button>
+        <button class="key" onclick="pressOutKey('6')">6</button>
+        <button class="key" onclick="pressOutKey('7')">7</button>
+        <button class="key" onclick="pressOutKey('8')">8</button>
+        <button class="key" onclick="pressOutKey('9')">9</button>
+        <button class="key clear" onclick="clearOutKey()">けす</button>
+        <button class="key" onclick="pressOutKey('0')">0</button>
+        <div></div>
+      </div>
+      <button id="btn-submit-out" class="btn btn-submit" style="background-color:#ff7675;" onclick="submitCheckOut()" disabled>おうちに かえる</button>
+      <button type="button" class="btn btn-gray" onclick="showScreen('screen-top')">↩️ やめる</button>
+    </div>
+
+    <!-- 7. 退室 - 完了画面 -->
+    <div id="screen-out-result" class="view-screen">
+      <div class="result-box out">
+        <h2 id="out-result-name">たいしつ できたよ！</h2>
+        <div id="out-result-num" class="num-display">- 番</div>
+        <p style="font-weight: bold; font-size: 16px; color: #e74c3c;">「にゅうしつカード」を<br>せんせいに かえしてね！</p>
+        <p style="font-size: 18px; font-weight: bold; color: #2ecc71;">👋 ばいばい、またね！</p>
+      </div>
+      <button class="btn btn-submit" style="background-color:#3498db; margin-top:20px;" onclick="showScreen('screen-top')">🏠 さいしょの がめんへ</button>
+      <div id="out-timer" class="auto-timer">5 秒後に さいしょの画面へ もどります</div>
+    </div>
+
+  </div>
+
+  <footer>つつじが丘市民センター 遊ゆうスペース</footer>
+
+  <script>
+    // ★★★ あなたのGASのWebアプリURLをここに貼り付けてください ★★★
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw.../exec";
+
+    let selectedPurposes = [];
+    let isProcessing = false;
+    let autoTimer = null;
+    let outInputNumber = "";
+
+    function showScreen(screenId) {
+      if (autoTimer) clearInterval(autoTimer);
+      document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    // 全角英数字を半角数字へ即時変換
+    function autoToHalfWidth(elem) {
+      if (!elem.value) return;
+      elem.value = elem.value
+        .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+        .replace(/[Ａ-Ｚａ-ｚ]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+        .replace(/[^0-9]/g, '');
+    }
+
+    /* === 入室関連 === */
+    function openCheckIn() {
+      selectedPurposes = [];
+      document.getElementById("btn-play").classList.remove("selected-play");
+      document.getElementById("btn-study").classList.remove("selected-study");
+      document.getElementById("btn-goto-scan").disabled = true;
+      showScreen('screen-in-purpose');
+    }
+
+    function togglePurpose(purpose) {
+      const pBtn = document.getElementById("btn-play");
+      const sBtn = document.getElementById("btn-study");
+      const nextBtn = document.getElementById("btn-goto-scan");
+      const idx = selectedPurposes.indexOf(purpose);
+
+      if (idx > -1) {
+        selectedPurposes.splice(idx, 1);
+        if (purpose === '遊び') pBtn.classList.remove("selected-play");
+        if (purpose === 'べんきょう') sBtn.classList.remove("selected-study");
+      } else {
+        selectedPurposes.push(purpose);
+        if (purpose === '遊び') pBtn.classList.add("selected-play");
+        if (purpose === 'べんきょう') sBtn.classList.add("selected-study");
+      }
+      nextBtn.disabled = (selectedPurposes.length === 0);
+    }
+
+    function focusBarcodeInput() {
+      const input = document.getElementById("barcode-input");
+      input.value = "";
+      document.getElementById("scan-status").innerText = "リーダーを向けてスキャンしてください";
+      setTimeout(() => input.focus(), 100);
+    }
+
+    function handleBarcodeKey(event) {
+      if (event.key === "Enter" || event.keyCode === 229) {
+        setTimeout(() => {
+          autoToHalfWidth(event.target);
+          const scannedId = event.target.value.trim();
+          if (!scannedId || isProcessing) return;
+          document.getElementById("scan-status").innerText = "送信中...";
+          apiCheckIn({ type: 'id', value: scannedId });
+        }, 20);
+      }
+    }
+
+    function submitManualEntry() {
+      const id = document.getElementById("manual-id").value.trim();
+      const name = document.getElementById("manual-name").value.trim();
+      if (!id && !name) return alert("IDまたはお名前を入力してください");
+      if (isProcessing) return;
+      if (id) apiCheckIn({ type: 'id', value: id });
+      else apiCheckIn({ type: 'guest_name', value: name });
+    }
+
+    function apiCheckIn(userData) {
+      isProcessing = true;
+      const url = `${GAS_API_URL}?action=doCheckIn&userData=${encodeURIComponent(JSON.stringify(userData))}&purposes=${encodeURIComponent(JSON.stringify(selectedPurposes))}`;
+      
+      fetch(url)
+        .then(res => res.json())
+        .then(res => {
+          isProcessing = false;
+          if (res.success || res.todayNumber) {
+            document.getElementById("in-result-name").innerText = res.name + " さん、いらっしゃい！";
+            document.getElementById("in-result-num").innerText = res.todayNumber + " 番";
+            showScreen('screen-in-result');
+            startTimer('in-timer', 5);
+          } else {
+            alert("エラー: " + (res.message || "受付できませんでした"));
+            focusBarcodeInput();
+          }
+        })
+        .catch(err => {
+          isProcessing = false;
+          alert("通信エラーが発生しました: " + err.message);
+          focusBarcodeInput();
+        });
+    }
+
+    /* === 退室関連 === */
+    function openCheckOut() {
+      outInputNumber = "";
+      updateOutDisplay();
+      showScreen('screen-out-input');
+    }
+
+    function pressOutKey(num) {
+      if (outInputNumber.length >= 4) return;
+      outInputNumber += num;
+      updateOutDisplay();
+    }
+
+    function clearOutKey() {
+      outInputNumber = "";
+      updateOutDisplay();
+    }
+
+    function updateOutDisplay() {
+      document.getElementById("out-number-display").innerText = outInputNumber ? outInputNumber + " 番" : "";
+      document.getElementById("btn-submit-out").disabled = (outInputNumber.length === 0);
+    }
+
+    function submitCheckOut() {
+      if (!outInputNumber || isProcessing) return;
+      isProcessing = true;
+      const url = `${GAS_API_URL}?action=doCheckOut&permitNumber=${encodeURIComponent(outInputNumber)}`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(res => {
+          isProcessing = false;
+          if (res.success) {
+            document.getElementById("out-result-name").innerText = res.name + " さん、またね！";
+            document.getElementById("out-result-num").innerText = outInputNumber + " 番";
+            showScreen('screen-out-result');
+            startTimer('out-timer', 5);
+          } else {
+            alert(res.message || "退室処理に失敗しました");
+            clearOutKey();
+          }
+        })
+        .catch(err => {
+          isProcessing = false;
+          alert("通信エラー: " + err.message);
+        });
+    }
+
+    function startTimer(elemId, seconds) {
+      let remain = seconds;
+      const elem = document.getElementById(elemId);
+      elem.innerText = `${remain} 秒後に さいしょの画面へ もどります`;
+      if (autoTimer) clearInterval(autoTimer);
+      autoTimer = setInterval(() => {
+        remain--;
+        if (remain <= 0) {
+          clearInterval(autoTimer);
+          showScreen('screen-top');
+        } else {
+          elem.innerText = `${remain} 秒後に さいしょの画面へ もどります`;
+        }
+      }, 1000);
+    }
+  </script>
 </body>
 </html>
