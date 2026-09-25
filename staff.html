@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>遊ゆうスペース - 職員管理メニュー</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 20px; background-color: #eceff1; color: #37474f; }
+    .container { max-width: 850px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    .view-screen { display: none; }
+    .view-screen.active { display: block; }
+    
+    .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cfd8dc; padding-bottom: 12px; margin-bottom: 20px; }
+    h1 { font-size: 22px; margin: 0; color: #263238; }
+    
+    .menu-grid { display: flex; flex-direction: column; gap: 15px; }
+    .menu-card { display: flex; align-items: center; padding: 20px; background: #fafafa; border: 2px solid #cfd8dc; border-radius: 10px; cursor: pointer; text-decoration: none; color: #37474f; transition: 0.2s; }
+    .menu-card:hover { background: #e3f2fd; border-color: #2196f3; }
+    .menu-icon { font-size: 36px; margin-right: 20px; width: 45px; text-align: center; }
+    .menu-info h3 { margin: 0 0 5px 0; font-size: 18px; color: #1976d2; }
+    .menu-info p { margin: 0; font-size: 13px; color: #546e7a; }
+
+    .btn { padding: 10px 18px; font-size: 14px; font-weight: bold; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .btn-back { background-color: #718096; }
+    .btn-blue { background-color: #3182ce; }
+    .btn-green { background-color: #38a169; }
+
+    /* 表スタイル */
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th { background-color: #34495e; color: white; padding: 10px; text-align: left; }
+    td { padding: 10px; border-bottom: 1px solid #cfd8dc; }
+    .tag { padding: 4px 8px; border-radius: 12px; font-size: 12px; color: white; font-weight: bold; }
+    .tag-play { background: #ff7675; } .tag-study { background: #74b9ff; } .tag-both { background: #a29bfe; }
+
+    /* カード・印刷スタイル */
+    .biz-card { width: 340px; height: 205px; margin: 10px auto; border: 1.5px solid #2b6cb0; border-radius: 8px; background: #f0f7ff; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-header { display: flex; justify-content: space-between; border-bottom: 2px solid #3182ce; font-size: 13px; font-weight: bold; }
+    .card-middle { display: flex; align-items: center; gap: 10px; }
+    .card-name { font-size: 18px; font-weight: bold; }
+    .card-barcode { background: white; border: 1px solid #cbd5e0; padding: 2px; text-align: center; }
+    .card-barcode svg { max-width: 100%; height: 40px; }
+
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      body { background: white; padding: 0; }
+      .container, .header-bar, .no-print { display: none !important; }
+      #print-area { display: grid !important; position: absolute; top: 11mm; left: 14mm; width: 182mm; height: 275mm; grid-template-columns: 91mm 91mm; grid-template-rows: repeat(5, 55mm); }
+      .print-slot { width: 91mm; height: 55mm; box-sizing: border-box; }
+      .biz-card { width: 91mm !important; height: 55mm !important; margin: 0 !important; border: 0.5px solid #cbd5e0 !important; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- 1. メインメニュー -->
+  <div id="staff-menu" class="view-screen active">
+    <div class="header-bar">
+      <h1>🛠️ 職員専用 管理メニュー</h1>
+      <a href="index.html" class="btn btn-blue" style="text-decoration:none;">📱 子ども受付画面へ</a>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-card" onclick="openScreen('staff-status'); loadActiveUsers();">
+        <div class="menu-icon">👥</div>
+        <div class="menu-info">
+          <h3>現在の在室者一覧</h3>
+          <p>リアルタイムで在室している子どもの確認を行います。</p>
+        </div>
+      </div>
+      <div class="menu-card" onclick="openScreen('staff-register')">
+        <div class="menu-icon">📝</div>
+        <div class="menu-info">
+          <h3>利用者マスター登録・管理</h3>
+          <p>新規利用者の登録、個別カードの印刷を行います。</p>
+        </div>
+      </div>
+      <div class="menu-card" onclick="openScreen('staff-bulk')">
+        <div class="menu-icon">🖨️</div>
+        <div class="menu-info">
+          <h3>利用者カード 一括作成・印刷</h3>
+          <p>指定ID範囲のカードをA4（10面）シートにまとめて印刷します。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 在室一覧 -->
+  <div id="staff-status" class="view-screen">
+    <div class="header-bar">
+      <h1>👥 現在の在室者一覧 (<span id="active-count">0</span>人)</h1>
+      <div>
+        <button class="btn btn-blue" onclick="loadActiveUsers()">🔄 更新</button>
+        <button class="btn btn-back" onclick="openScreen('staff-menu')">🏠 メニューへ</button>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>入館番号</th><th>おなまえ</th><th>利用目的</th><th>入室時刻</th></tr>
+      </thead>
+      <tbody id="user-table-body">
+        <tr><td colspan="4">読み込み中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. 利用者登録 -->
+  <div id="staff-register" class="view-screen">
+    <div class="header-bar">
+      <h1>📝 利用者マスター登録</h1>
+      <button class="btn btn-back" onclick="openScreen('staff-menu')">🏠 メニューへ</button>
+    </div>
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+      <input type="text" id="search-id" placeholder="登録済みID（6桁）で呼出" style="padding:8px; flex:1;">
+      <button class="btn btn-blue" onclick="searchUser()">🔍 検索</button>
+    </div>
+    <input type="hidden" id="user-id">
+    <div style="margin-bottom:10px;">
+      <label>氏名: </label><input type="text" id="user-name" style="width:100%; padding:8px; box-sizing:border-box;">
+    </div>
+    <div style="margin-bottom:15px;">
+      <label>生年月 (西暦 YYYY-MM): </label><input type="month" id="user-birthday" style="width:100%; padding:8px; box-sizing:border-box;">
+    </div>
+    <button class="btn btn-green" style="width:100%; padding:12px;" onclick="saveUserData()">💾 登録 / 保存</button>
+
+    <div id="reg-card-preview" style="margin-top:20px; display:none;">
+      <h3>🪪 カード印刷プレビュー</h3>
+      <div id="single-card-output"></div>
+      <button class="btn btn-blue no-print" style="width:100%; margin-top:10px;" onclick="printSingleCard()">🖨️ このカードを印刷</button>
+    </div>
+  </div>
+
+  <!-- 4. カード一括印刷 -->
+  <div id="staff-bulk" class="view-screen">
+    <div class="header-bar">
+      <h1>🖨️ 利用者カード 一括作成</h1>
+      <button class="btn btn-back" onclick="openScreen('staff-menu')">🏠 メニューへ</button>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+      <input type="text" id="bulk-start" placeholder="開始ID (例:260001)" style="padding:8px;">
+      <span>〜</span>
+      <input type="text" id="bulk-end" placeholder="終了ID (例:260010)" style="padding:8px;">
+      <button class="btn btn-blue" onclick="generateBulk()">生成</button>
+    </div>
+    <button id="bulk-print-btn" class="btn btn-green no-print" style="width:100%; display:none; margin-bottom:15px;" onclick="window.print()">🖨️ まとめて印刷（A4 10面）</button>
+    <div id="bulk-card-output" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+  </div>
+
+</div>
+
+<!-- 印刷用グリッド枠 -->
+<div id="print-area" style="display:none;"></div>
+
+<script>
+  // ★★★ あなたのGASのWebアプリURLをここに貼り付けてください ★★★
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw.../exec";
+  let currentRegisteredUser = null;
+
+  function openScreen(id) {
+    document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function loadActiveUsers() {
+    const tbody = document.getElementById("user-table-body");
+    tbody.innerHTML = "<tr><td colspan='4'>読み込み中...</td></tr>";
+    fetch(`${GAS_API_URL}?action=getActiveUsers`)
+      .then(res => res.json())
+      .then(users => {
+        tbody.innerHTML = "";
+        document.getElementById("active-count").innerText = users.length;
+        if (users.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>現在入室中の子どもはいません。</td></tr>";
+          return;
+        }
+        users.forEach(u => {
+          let tr = document.createElement("tr");
+          tr.innerHTML = `<td><b>${u.permitNumber}番</b></td><td>${u.name}</td><td>${u.purpose}</td><td>${u.entryTime}</td>`;
+          tbody.appendChild(tr);
+        });
+      });
+  }
+
+  function searchUser() {
+    const id = document.getElementById("search-id").value.trim();
+    if (!id) return;
+    fetch(`${GAS_API_URL}?action=getUserById&userId=${id}`)
+      .then(res => res.json())
+      .then(u => {
+        if (!u) return alert("見つかりませんでした");
+        currentRegisteredUser = u;
+        document.getElementById("user-id").value = u.userId;
+        document.getElementById("user-name").value = u.name;
+        document.getElementById("user-birthday").value = u.birthday;
+        renderSinglePreview(u);
+      });
+  }
+
+  function saveUserData() {
+    const name = document.getElementById("user-name").value.trim();
+    const bday = document.getElementById("user-birthday").value;
+    const id = document.getElementById("user-id").value;
+    if (!name) return alert("氏名を入力してください");
+
+    const payload = { userId: id || null, name: name, birthday: bday };
+    fetch(`${GAS_API_URL}?action=saveUser&userData=${encodeURIComponent(JSON.stringify(payload))}`)
+      .then(res => res.json())
+      .then(u => {
+        alert("保存しました！ ID: " + u.userId);
+        currentRegisteredUser = u;
+        document.getElementById("user-id").value = u.userId;
+        renderSinglePreview(u);
+      });
+  }
+
+  function renderSinglePreview(u) {
+    document.getElementById("reg-card-preview").style.display = "block";
+    const out = document.getElementById("single-card-output");
+    out.innerHTML = buildCard(u, "single-barcode");
+    drawBarcode("single-barcode", u.userId);
+  }
+
+  function printSingleCard() {
+    const printArea = document.getElementById("print-area");
+    printArea.innerHTML = `<div class="print-slot">${buildCard(currentRegisteredUser, "print-single-bc")}</div>`;
+    drawBarcode("print-single-bc", currentRegisteredUser.userId);
+    window.print();
+  }
+
+  function generateBulk() {
+    const s = document.getElementById("bulk-start").value.trim();
+    const e = document.getElementById("bulk-end").value.trim();
+    if (!s || !e) return alert("開始・終了IDを入れてください");
+
+    fetch(`${GAS_API_URL}?action=getUsersByIdRange&startId=${s}&endId=${e}`)
+      .then(res => res.json())
+      .then(users => {
+        const out = document.getElementById("bulk-card-output");
+        const printArea = document.getElementById("print-area");
+        out.innerHTML = "";
+        printArea.innerHTML = "";
+        if (!users || users.length === 0) return alert("対象データがありません");
+
+        users.forEach((u, i) => {
+          out.innerHTML += buildCard(u, "bulk-bc-" + i);
+          printArea.innerHTML += `<div class="print-slot">${buildCard(u, "pbulk-bc-" + i)}</div>`;
+        });
+        users.forEach((u, i) => {
+          drawBarcode("bulk-bc-" + i, u.userId);
+          drawBarcode("pbulk-bc-" + i, u.userId);
+        });
+        document.getElementById("bulk-print-btn").style.display = "block";
+      });
+  }
+
+  function buildCard(u, svgId) {
+    return `
+      <div class="biz-card">
+        <div class="card-header"><div>🌱 遊ゆうスペース</div><div>利用者カード</div></div>
+        <div class="card-middle">
+          <div><div class="card-name">${u.name} 様</div><div style="font-size:11px; color:#2b6cb0;">ID: ${u.userId}</div></div>
+        </div>
+        <div class="card-barcode"><svg id="${svgId}"></svg></div>
+        <div style="font-size:8px; color:#718096; display:flex; justify-content:space-between;">
+          <span>つつじが丘市民センター</span><span>※入退室時に提示</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function drawBarcode(id, val) {
+    setTimeout(() => {
+      try {
+        JsBarcode("#" + id, String(val), { format: "CODE128", width: 1.6, height: 35, displayValue: true, fontSize: 11 });
+      } catch(e){}
+    }, 50);
+  }
+</script>
+</body>
+</html>
