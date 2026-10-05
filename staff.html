@@ -46,77 +46,69 @@
     th { background-color: #34495e; color: white; padding: 10px; text-align: left; }
     td { padding: 10px; border-bottom: 1px solid #cfd8dc; }
 
-    /* 🖨️ 10面名刺用紙 ミニチュア選択プレビュー */
-    .sheet-preview-wrap {
-      background: #e2e8f0;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px auto;
-      max-width: 560px;
+    /* 🖨️ 印刷設定エリア */
+    .print-control-box {
+      background: #f7fafc;
+      border: 2px dashed #3182ce;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 25px;
     }
-    .sheet-grid {
+    
+    /* 10面位置選択ボタングリッド */
+    .pos-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: repeat(5, 75px);
+      grid-template-columns: repeat(2, 110px);
       gap: 8px;
-    }
-    .sheet-slot {
-      background: white;
-      border: 2px dashed #cbd5e0;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: bold;
-      color: #718096;
-      transition: all 0.2s;
-      position: relative;
+      margin: 12px 0;
     }
-    .sheet-slot:hover {
+    .pos-btn {
+      padding: 10px 6px;
+      border: 2px solid #cbd5e0;
+      background: white;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #4a5568;
+      transition: all 0.15s ease-in-out;
+    }
+    .pos-btn:hover {
       border-color: #3182ce;
       color: #3182ce;
-      background: #ebf8ff;
     }
-    .sheet-slot.active {
-      border: 2.5px solid #3182ce;
-      background: #ebf8ff;
-      color: #2b6cb0;
-      box-shadow: 0 3px 8px rgba(49, 130, 206, 0.3);
-    }
-    .sheet-slot-number {
-      font-size: 11px;
-      position: absolute;
-      top: 4px;
-      left: 6px;
-      background: #cbd5e0;
-      color: #2d3748;
-      padding: 1px 5px;
-      border-radius: 3px;
-    }
-    .sheet-slot.active .sheet-slot-number {
+    .pos-btn.active {
       background: #3182ce;
       color: white;
+      border-color: #2b6cb0;
+      box-shadow: 0 3px 8px rgba(49, 130, 206, 0.4);
     }
 
-    /* 🪪 カード通常表示スタイル */
+    /* 🪪 カード単体表示スタイル（画面プレビュー） */
+    .card-preview-frame {
+      display: flex;
+      justify-content: center;
+      margin: 15px 0 20px 0;
+    }
     .biz-card { 
-      width: 100%;
-      height: 100%;
+      width: 340px; 
+      height: 205px; 
       border: 1.5px solid #2b6cb0; 
       border-radius: 8px; 
-      background: #f0f7ff; 
-      padding: 6px 10px 4px 10px; 
+      background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%); 
+      padding: 8px 12px; 
       box-sizing: border-box; 
       display: flex; 
       flex-direction: column; 
       justify-content: space-between; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    .card-header { display: flex; justify-content: space-between; border-bottom: 1.5px solid #3182ce; font-size: 12px; font-weight: bold; color: #1a365d; padding-bottom: 2px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #3182ce; font-size: 13px; font-weight: 900; color: #1a365d; padding-bottom: 3px; }
+    .card-badge { font-size: 9px; font-weight: bold; background-color: #3182ce; color: white; padding: 2px 6px; border-radius: 3px; }
     .card-middle { display: flex; align-items: center; justify-content: space-between; margin: 2px 0; }
-    .card-name { font-size: 16px; font-weight: bold; color: #1a202c; }
+    .card-name { font-size: 18px; font-weight: 900; color: #1a202c; }
+    .card-honorific { font-size: 12px; font-weight: normal; color: #4a5568; }
     .card-id-text { font-size: 12px; color: #2b6cb0; font-weight: bold; }
     
     .card-barcode { 
@@ -124,30 +116,37 @@
       border: 1px solid #cbd5e0; 
       border-radius: 4px;
       padding: 2px 4px; 
-      text-align: center; 
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 52px;
+      height: 56px;
     }
-    .card-barcode svg { width: 100%; height: 48px; }
-    .card-footer { font-size: 8px; color: #718096; display: flex; justify-content: space-between; border-top: 1px dashed #cbd5e0; padding-top: 2px; }
+    .card-barcode svg { width: 100%; height: 50px; }
+    .card-footer { font-size: 8.5px; color: #718096; display: flex; justify-content: space-between; border-top: 1px dashed #cbd5e0; padding-top: 3px; }
 
-    /* 🖨️ A4・10面（91mm×55mm）名刺印刷専用スタイル */
+    /* 🖨️ A4・10面（上下余白11mm、左右余白14mm、91mm×55mm）完全印刷専用スタイル */
+    @media screen {
+      #print-area { display: none; }
+    }
+
     @media print {
       @page { 
         size: A4 portrait; 
-        margin: 0 !important; 
+        margin: 0mm !important; 
       }
+      
       html, body { 
         width: 210mm !important; 
         height: 297mm !important; 
         background: white !important; 
-        padding: 0 !important; 
-        margin: 0 !important; 
+        padding: 0mm !important; 
+        margin: 0mm !important; 
         overflow: hidden !important; 
       }
-      .container, .header-bar, .no-print { display: none !important; }
+
+      .container, .header-bar, .no-print { 
+        display: none !important; 
+      }
       
       #print-area { 
         display: grid !important; 
@@ -157,37 +156,52 @@
         width: 182mm !important; 
         height: 275mm !important; 
         grid-template-columns: 91mm 91mm !important; 
-        grid-template-rows: repeat(5, 55mm) !important; 
+        grid-template-rows: 55mm 55mm 55mm 55mm 55mm !important; 
         column-gap: 0mm !important;
         row-gap: 0mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        margin: 0mm !important;
+        padding: 0mm !important;
+        background: transparent !important;
       }
+
       .print-slot { 
         width: 91mm !important; 
         height: 55mm !important; 
+        max-width: 91mm !important;
+        max-height: 55mm !important;
+        min-width: 91mm !important;
+        min-height: 55mm !important;
         box-sizing: border-box !important; 
         overflow: hidden !important;
       }
+
       .print-slot.empty {
         visibility: hidden !important;
       }
+
       .biz-card { 
         width: 91mm !important; 
         height: 55mm !important; 
+        max-width: 91mm !important;
+        max-height: 55mm !important;
         margin: 0 !important; 
         border: 0.5px solid #cbd5e0 !important; 
         border-radius: 0 !important;
-        padding: 3.5mm 4.5mm 2.5mm 4.5mm !important;
+        padding: 3.5mm 4.5mm 2.5mm 4.5mm !important; 
         background: #f0f7ff !important;
+        box-shadow: none !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         box-sizing: border-box !important;
         page-break-inside: avoid !important;
       }
-      .biz-card .card-name { font-size: 17px !important; }
-      .biz-card .card-barcode { height: 58px !important; }
-      .biz-card .card-barcode svg { height: 54px !important; }
+      .biz-card .card-header { font-size: 11px !important; padding-bottom: 2px !important; }
+      .biz-card .card-badge { font-size: 8.5px !important; }
+      .biz-card .card-name { font-size: 16px !important; }
+      .biz-card .card-id-text { font-size: 11.5px !important; }
+      .biz-card .card-barcode { height: 52px !important; }
+      .biz-card .card-barcode svg { height: 48px !important; }
+      .biz-card .card-footer { font-size: 7.5px !important; padding-top: 2px !important; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -324,353 +338,19 @@
       <button class="btn btn-green" style="flex:1; padding:12px;" onclick="saveUserData()">💾 登録 / 上書き保存</button>
     </div>
 
-    <!-- 🖨️ 10面位置指定＆印刷セクション -->
-    <div id="reg-card-preview" style="margin-top:25px; display:none; border-top:2px dashed #3182ce; padding-top:15px;">
+    <!-- 🖨️ カードイメージ表示 & 10面位置指定印刷エリア -->
+    <div id="reg-card-preview" class="print-control-box" style="display:none;">
+      
+      <!-- 1. カードイメージ（単体完成プレビュー） -->
       <div style="text-align:center;">
-        <h3 style="color:#2b6cb0; margin:0 0 5px 0;">🖨️ 名刺用紙（10面）の印刷位置を指定</h3>
-        <p style="font-size:13px; color:#546e7a; margin:0 0 10px 0;">印刷したいマス目（①〜⑩）をクリックして選択してください。</p>
+        <h3 style="color:#1a365d; margin:0 0 5px 0; font-size:16px;">🪪 利用者カード 完成イメージ</h3>
+        <p style="font-size:12px; color:#718096; margin:0 0 10px 0;">以下の内容でカードが印刷されます。</p>
+      </div>
+      
+      <div class="card-preview-frame">
+        <div id="single-card-output"></div>
       </div>
 
-      <div class="sheet-preview-wrap">
-        <div class="sheet-grid" id="register-sheet-grid"></div>
-      </div>
-
-      <button class="btn btn-blue no-print" style="width:100%; max-width:400px; display:block; margin:12px auto; font-size:15px;" onclick="printSingleCard()">
-        🖨️ 指定した位置（<span id="reg-selected-pos-text">① 左上</span>）に印刷
-      </button>
-    </div>
-  </div>
-
-  <!-- 4. カード一括印刷 -->
-  <div id="staff-bulk" class="view-screen">
-    <div class="header-bar">
-      <h1>🖨️ 利用者カード 一括作成</h1>
-      <button class="btn btn-back" onclick="openScreen('staff-menu')">🏠 メニューへ</button>
-    </div>
-    <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
-      <input type="text" id="bulk-start" placeholder="開始ID (例:260001)" oninput="autoToHalfWidth(this)" style="padding:8px;">
-      <span>〜</span>
-      <input type="text" id="bulk-end" placeholder="終了ID (例:260010)" oninput="autoToHalfWidth(this)" style="padding:8px;">
-      <button class="btn btn-blue" onclick="generateBulk()">生成</button>
-    </div>
-    <button id="bulk-print-btn" class="btn btn-green no-print" style="width:100%; display:none; margin-bottom:15px;" onclick="window.print()">🖨️ まとめて印刷（A4 10面）</button>
-    <div id="bulk-card-output" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
-  </div>
-
-</div>
-
-<!-- 印刷用グリッド枠（印刷時にのみブラウザが参照） -->
-<div id="print-area" style="display:none;"></div>
-
-<script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyMrr61Ru5R67qcPi_cbIZevqX_80FCxmtWLKV8oeTlTQ0cMktmg_bZ34ULgzQ2uSaKfQ/exec";
-  let currentRegisteredUser = null;
-  let selectedSlotNumber = 1; // 1〜10
-
-  const slotNames = {
-    1: "① 左上", 2: "② 右上",
-    3: "③ 2段目左", 4: "④ 2段目右",
-    5: "⑤ 3段目左", 6: "⑥ 3段目右",
-    7: "⑦ 4段目左", 8: "⑧ 4段目右",
-    9: "⑨ 左下", 10: "⑩ 右下"
-  };
-
-  function openScreen(id) {
-    document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
-  function autoToHalfWidth(elem) {
-    if (!elem.value) return;
-    elem.value = elem.value
-      .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
-      .replace(/[Ａ-Ｚａ-ｚ]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
-      .replace(/ー/g, '-');
-  }
-
-  /* === 和暦・西暦変換 === */
-  function toggleBdayMode() {
-    const isWareki = document.querySelector('input[name="bday-type"]:checked').value === 'wareki';
-    document.getElementById("wareki-box").style.display = isWareki ? "flex" : "none";
-    document.getElementById("seireki-box").style.display = isWareki ? "none" : "block";
-    updateDateDisplay();
-  }
-
-  function onWarekiChange() {
-    const era = document.getElementById("wareki-era").value;
-    const y = parseInt(document.getElementById("wareki-year").value, 10);
-    const m = parseInt(document.getElementById("wareki-month").value, 10);
-    if (!y || !m) {
-      document.getElementById("user-birthday").value = "";
-      document.getElementById("seireki-input").value = "";
-      updateDateDisplay();
-      return;
-    }
-    let base = era === "令和" ? 2018 : (era === "平成" ? 1988 : 1925);
-    const fullYear = base + y;
-    const mm = String(m).padStart(2, "0");
-    document.getElementById("user-birthday").value = `${fullYear}/${mm}`;
-    document.getElementById("seireki-input").value = `${fullYear}-${mm}`;
-    updateDateDisplay();
-  }
-
-  function onSeirekiChange() {
-    const val = document.getElementById("seireki-input").value;
-    if (!val) {
-      document.getElementById("user-birthday").value = "";
-      document.getElementById("wareki-year").value = "";
-      document.getElementById("wareki-month").value = "";
-      updateDateDisplay();
-      return;
-    }
-    const [y, m] = val.split("-").map(Number);
-    document.getElementById("user-birthday").value = `${y}/${String(m).padStart(2,"0")}`;
-    let era = "令和", wYear = y - 2018;
-    if (y * 100 + m < 201905) { era = "平成"; wYear = y - 1988; }
-    if (y * 100 + m < 198901) { era = "昭和"; wYear = y - 1925; }
-    document.getElementById("wareki-era").value = era;
-    document.getElementById("wareki-year").value = wYear;
-    document.getElementById("wareki-month").value = m;
-    updateDateDisplay();
-  }
-
-  function updateDateDisplay() {
-    const bday = document.getElementById("user-birthday").value;
-    const preview = document.getElementById("date-preview");
-    const isWareki = document.querySelector('input[name="bday-type"]:checked').value === 'wareki';
-    if (!bday) {
-      preview.innerText = isWareki ? "（西暦： 未入力）" : "（和暦： 未入力）";
-      return;
-    }
-    preview.innerText = isWareki ? `（西暦： ${bday}）` : `（和暦： ${document.getElementById("wareki-era").value}${document.getElementById("wareki-year").value}年${document.getElementById("wareki-month").value}月）`;
-  }
-
-  function setBirthdayValue(dateStr) {
-    if (!dateStr) return;
-    const ymMatch = String(dateStr).replace(/\//g, "-").match(/^(\d{4}-\d{2})/);
-    if (ymMatch) {
-      document.getElementById("seireki-input").value = ymMatch[1];
-      onSeirekiChange();
-    }
-  }
-
-  /* === 検索処理 === */
-  function searchUser() {
-    const id = document.getElementById("search-id").value.trim();
-    if (!id) return alert("検索するIDを入力してください");
-
-    fetch(`${GAS_API_URL}?action=getUserById&userId=${id}`)
-      .then(res => res.json())
-      .then(u => {
-        if (!u || !u.userId) return alert("該当する利用者は見つかりませんでした");
-        currentRegisteredUser = u;
-        document.getElementById("user-id").value = u.userId;
-        document.getElementById("user-name").value = u.name || "";
-        document.getElementById("guardian-name").value = u.guardianName || "";
-        document.getElementById("relation").value = u.relation || "";
-        document.getElementById("tel-1").value = u.tel1 || "";
-        document.getElementById("tel-2").value = u.tel2 || "";
-        setBirthdayValue(u.birthday || "");
-        
-        document.getElementById("reg-card-preview").style.display = "block";
-        renderRegisterSheetPreview();
-      })
-      .catch(err => alert("検索エラー: " + err.message));
-  }
-
-  /* === 保存処理 === */
-  function saveUserData() {
-    const name = document.getElementById("user-name").value.trim();
-    const bday = document.getElementById("user-birthday").value;
-    const id = document.getElementById("user-id").value;
-    const guardianName = document.getElementById("guardian-name").value.trim();
-    const relation = document.getElementById("relation").value.trim();
-    const tel1 = document.getElementById("tel-1").value.trim();
-    const tel2 = document.getElementById("tel-2").value.trim();
-
-    if (!name || !bday) return alert("氏名と生年月は必須項目です");
-
-    const payload = {
-      userId: id || null,
-      name: name,
-      birthday: bday,
-      guardianName: guardianName,
-      relation: relation,
-      tel1: tel1,
-      tel2: tel2
-    };
-
-    fetch(`${GAS_API_URL}?action=saveUser&userData=${encodeURIComponent(JSON.stringify(payload))}`)
-      .then(res => res.json())
-      .then(u => {
-        alert("登録・保存が完了しました！\n利用者ID: " + u.userId);
-        currentRegisteredUser = u;
-        document.getElementById("user-id").value = u.userId;
-        document.getElementById("search-id").value = u.userId;
-        
-        document.getElementById("reg-card-preview").style.display = "block";
-        renderRegisterSheetPreview();
-      })
-      .catch(err => alert("保存エラー: " + err.message));
-  }
-
-  function clearRegisterForm() {
-    currentRegisteredUser = null;
-    document.getElementById("user-id").value = "";
-    document.getElementById("search-id").value = "";
-    document.getElementById("user-name").value = "";
-    document.getElementById("guardian-name").value = "";
-    document.getElementById("relation").value = "";
-    document.getElementById("tel-1").value = "";
-    document.getElementById("tel-2").value = "";
-    document.getElementById("seireki-input").value = "";
-    document.getElementById("user-birthday").value = "";
-    document.getElementById("wareki-year").value = "";
-    document.getElementById("wareki-month").value = "";
-    updateDateDisplay();
-    document.getElementById("reg-card-preview").style.display = "none";
-  }
-
-  /* 🖨️ 画面上の10面マス目選択 */
-  function selectRegisterSlot(num) {
-    selectedSlotNumber = num;
-    document.getElementById("reg-selected-pos-text").innerText = slotNames[num];
-    renderRegisterSheetPreview();
-  }
-
-  function renderRegisterSheetPreview() {
-    if (!currentRegisteredUser) return;
-    const grid = document.getElementById("register-sheet-grid");
-    grid.innerHTML = "";
-
-    for (let i = 1; i <= 10; i++) {
-      const slot = document.createElement("div");
-      slot.className = "sheet-slot" + (i === selectedSlotNumber ? " active" : "");
-      slot.onclick = () => selectRegisterSlot(i);
-
-      if (i === selectedSlotNumber) {
-        slot.innerHTML = `
-          <span class="sheet-slot-number">${slotNames[i]}</span>
-          <div style="text-align:center;">
-            <div style="font-size:10px; color:#3182ce;">ここに印刷</div>
-            <div style="font-size:13px; font-weight:bold;">${currentRegisteredUser.name} 様</div>
-            <div style="font-size:11px; color:#718096;">ID: ${currentRegisteredUser.userId}</div>
-          </div>
-        `;
-      } else {
-        slot.innerHTML = `
-          <span class="sheet-slot-number">${slotNames[i]}</span>
-          <span style="font-size:11px; color:#a0aec0;">（空き）</span>
-        `;
-      }
-      grid.appendChild(slot);
-    }
-  }
-
-  /* 🖨️ 指定位置への単票印刷 */
-  function printSingleCard() {
-    if (!currentRegisteredUser) return alert("利用者情報がありません");
-    
-    const printArea = document.getElementById("print-area");
-    printArea.innerHTML = "";
-
-    for (let i = 1; i <= 10; i++) {
-      const slot = document.createElement("div");
-      slot.className = "print-slot";
-      if (i === selectedSlotNumber) {
-        slot.innerHTML = buildCard(currentRegisteredUser, "print-single-bc");
-      } else {
-        slot.classList.add("empty");
-      }
-      printArea.appendChild(slot);
-    }
-
-    drawBarcode("print-single-bc", currentRegisteredUser.userId);
-    setTimeout(() => {
-      window.print();
-    }, 150);
-  }
-
-  function buildCard(u, svgId) {
-    return `
-      <div class="biz-card">
-        <div class="card-header">
-          <div>🌱 遊ゆうスペース</div>
-          <div>利用者カード</div>
-        </div>
-        <div class="card-middle">
-          <div class="card-name">${u.name} 様</div>
-          <div class="card-id-text">ID: ${u.userId}</div>
-        </div>
-        <div class="card-barcode"><svg id="${svgId}"></svg></div>
-        <div class="card-footer">
-          <span>つつじが丘市民センター</span>
-          <span>※入退室時に提示</span>
-        </div>
-      </div>
-    `;
-  }
-
-  function drawBarcode(id, val) {
-    try {
-      JsBarcode("#" + id, String(val), { 
-        format: "CODE128", 
-        width: 2.0, 
-        height: 48, 
-        displayValue: true, 
-        fontSize: 12,
-        margin: 0
-      });
-    } catch(e){
-      console.error(e);
-    }
-  }
-
-  function loadActiveUsers() {
-    const tbody = document.getElementById("user-table-body");
-    tbody.innerHTML = "<tr><td colspan='4'>読み込み中...</td></tr>";
-    fetch(`${GAS_API_URL}?action=getActiveUsers`)
-      .then(res => res.json())
-      .then(users => {
-        tbody.innerHTML = "";
-        document.getElementById("active-count").innerText = users.length;
-        if (users.length === 0) {
-          tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>現在入室中の子どもはいません。</td></tr>";
-          return;
-        }
-        users.forEach(u => {
-          let tr = document.createElement("tr");
-          tr.innerHTML = `<td><b>${u.permitNumber}番</b></td><td>${u.name}</td><td>${u.purpose}</td><td>${u.entryTime}</td>`;
-          tbody.appendChild(tr);
-        });
-      });
-  }
-
-  function generateBulk() {
-    const s = document.getElementById("bulk-start").value.trim();
-    const e = document.getElementById("bulk-end").value.trim();
-    if (!s || !e) return alert("開始・終了IDを入れてください");
-
-    fetch(`${GAS_API_URL}?action=getUsersByIdRange&startId=${s}&endId=${e}`)
-      .then(res => res.json())
-      .then(users => {
-        const out = document.getElementById("bulk-card-output");
-        const printArea = document.getElementById("print-area");
-        out.innerHTML = "";
-        printArea.innerHTML = "";
-        if (!users || users.length === 0) return alert("対象データがありません");
-
-        users.forEach((u, i) => {
-          out.innerHTML += `<div style="height:180px;">${buildCard(u, "bulk-bc-" + i)}</div>`;
-          printArea.innerHTML += `<div class="print-slot">${buildCard(u, "pbulk-bc-" + i)}</div>`;
-        });
-        users.forEach((u, i) => {
-          drawBarcode("bulk-bc-" + i, u.userId);
-          drawBarcode("pbulk-bc-" + i, u.userId);
-        });
-        document.getElementById("bulk-print-btn").style.display = "block";
-      });
-  }
-</script>
-</body>
-</html>
+      <!-- 2. 10面用紙の印刷位置選択 -->
+      <div style="text-align:center; border-top:1px dashed #cbd5e0; padding-top:15px;">
+        <strong style="color:
