@@ -1,15 +1,38 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<!-- 2026/10/5 追加 アプリ全画面化（URLバーを消す）設定 -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="manifest.json"> 
-<!-- 2026/10/5 ここまで -->  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>遊ゆうスペース - 職員管理メニュー</title>
+
+  <!-- PWA（全画面アプリ化）設定 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- ⚡ 画面切り替えプログラムを最優先で定義 -->
+  <script>
+    function openScreen(targetId) {
+      try {
+        var screenIds = ['staff-menu', 'staff-status', 'staff-register', 'staff-bulk'];
+        for (var i = 0; i < screenIds.length; i++) {
+          var el = document.getElementById(screenIds[i]);
+          if (el) {
+            el.style.display = (screenIds[i] === targetId) ? 'block' : 'none';
+          }
+        }
+        window.scrollTo(0, 0);
+
+        if (targetId === 'staff-status' && typeof loadActiveUsers === 'function') {
+          loadActiveUsers();
+        }
+      } catch (err) {
+        console.error("openScreen error:", err);
+      }
+    }
+  </script>
+
   <style>
     body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 20px; background-color: #eceff1; color: #37474f; }
     .container { max-width: 850px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
@@ -28,6 +51,7 @@
       cursor: pointer; 
       color: #37474f; 
       transition: all 0.2s ease-in-out; 
+      user-select: none;
     }
     .menu-card:hover { background: #e3f2fd; border-color: #2196f3; transform: translateY(-2px); }
     .menu-icon { font-size: 36px; margin-right: 20px; width: 45px; text-align: center; }
@@ -231,6 +255,7 @@
       .biz-card .card-footer { font-size: 7.5px !important; padding-top: 2px !important; }
     }
   </style>
+
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 </head>
 <body>
@@ -447,22 +472,6 @@
     9: "⑨ 左下", 10: "⑩ 右下"
   };
 
-  /* ⚡ 画面切り替え */
-  function openScreen(targetId) {
-    const screens = ['staff-menu', 'staff-status', 'staff-register', 'staff-bulk'];
-    for (let i = 0; i < screens.length; i++) {
-      const el = document.getElementById(screens[i]);
-      if (el) {
-        el.style.display = (screens[i] === targetId) ? 'block' : 'none';
-      }
-    }
-    window.scrollTo(0, 0);
-
-    if (targetId === 'staff-status') {
-      loadActiveUsers();
-    }
-  }
-
   function autoToHalfWidth(elem) {
     if (!elem || !elem.value) return;
     elem.value = elem.value
@@ -582,145 +591,4 @@
       tel2: tel2
     };
 
-    fetch(`${GAS_API_URL}?action=saveUser&userData=${encodeURIComponent(JSON.stringify(payload))}`)
-      .then(res => res.json())
-      .then(u => {
-        alert("登録・保存が完了しました！\n利用者ID: " + u.userId);
-        currentRegisteredUser = u;
-        document.getElementById("user-id").value = u.userId;
-        document.getElementById("search-id").value = u.userId;
-        
-        displayCardPreview(u);
-      })
-      .catch(err => alert("保存エラー: " + err.message));
-  }
-
-  function clearRegisterForm() {
-    currentRegisteredUser = null;
-    document.getElementById("user-id").value = "";
-    document.getElementById("search-id").value = "";
-    document.getElementById("user-name").value = "";
-    document.getElementById("guardian-name").value = "";
-    document.getElementById("relation").value = "";
-    document.getElementById("tel-1").value = "";
-    document.getElementById("tel-2").value = "";
-    document.getElementById("seireki-input").value = "";
-    document.getElementById("user-birthday").value = "";
-    document.getElementById("wareki-year").value = "";
-    document.getElementById("wareki-month").value = "";
-    updateDateDisplay();
-    document.getElementById("reg-card-preview").style.display = "none";
-  }
-
-  /* 🪪 カード単体イメージを表示 */
-  function displayCardPreview(u) {
-    document.getElementById("reg-card-preview").style.display = "block";
-    const out = document.getElementById("single-card-output");
-    out.innerHTML = buildCard(u, "single-preview-bc");
-    drawBarcode("single-preview-bc", u.userId);
-  }
-
-  /* 🖨️ 印刷位置を選択 */
-  function selectSlot(num) {
-    selectedSlotNumber = num;
-    document.querySelectorAll('.pos-btn').forEach((btn, idx) => {
-      btn.classList.toggle('active', (idx + 1) === num);
-    });
-    document.getElementById("reg-selected-pos-text").innerText = slotNames[num];
-  }
-
-  /* 🖨️ 指定位置への印刷 */
-  function printSingleCard() {
-    if (!currentRegisteredUser) return alert("利用者情報がありません");
-    
-    const printArea = document.getElementById("print-area");
-    printArea.innerHTML = "";
-
-    for (let i = 1; i <= 10; i++) {
-      const slot = document.createElement("div");
-      slot.className = "print-slot";
-      if (i === selectedSlotNumber) {
-        slot.innerHTML = buildCard(currentRegisteredUser, "print-single-bc");
-      } else {
-        slot.classList.add("empty");
-      }
-      printArea.appendChild(slot);
-    }
-
-    drawBarcode("print-single-bc", currentRegisteredUser.userId);
-    setTimeout(() => {
-      window.print();
-    }, 150);
-  }
-
-  function buildCard(u, svgId) {
-    return `
-      <div class="biz-card">
-        <div class="card-header">
-          <div>🌱 遊ゆうスペース</div>
-          <div class="card-badge">利用者カード</div>
-        </div>
-        <div class="card-middle">
-          <div class="card-name">${u.name}<span class="card-honorific"> 様</span></div>
-          <div class="card-id-text">ID: ${u.userId}</div>
-        </div>
-        <div class="card-barcode"><svg id="${svgId}"></svg></div>
-        <div class="card-footer">
-          <div>つつじが丘市民センター</div>
-          <div>※入退室時にご提示ください</div>
-        </div>
-      </div>
-    `;
-  }
-
-  function drawBarcode(id, val) {
-    try {
-      if (typeof JsBarcode === "function") {
-        JsBarcode("#" + id, String(val), { 
-          format: "CODE128", 
-          width: 2.0, 
-          height: 48, 
-          displayValue: true, 
-          fontSize: 12,
-          margin: 0,
-          background: "transparent",
-          lineColor: "#1a202c"
-        });
-      }
-    } catch(e){
-      console.error(e);
-    }
-  }
-
-  function loadActiveUsers() {
-    const tbody = document.getElementById("user-table-body");
-    tbody.innerHTML = "<tr><td colspan='4'>読み込み中...</td></tr>";
-    fetch(`${GAS_API_URL}?action=getActiveUsers`)
-      .then(res => res.json())
-      .then(users => {
-        tbody.innerHTML = "";
-        document.getElementById("active-count").innerText = users.length || 0;
-        if (!users || users.length === 0) {
-          tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>現在入室中の子どもはいません。</td></tr>";
-          return;
-        }
-        users.forEach(u => {
-          let tr = document.createElement("tr");
-          tr.innerHTML = `<td><b>${u.permitNumber}番</b></td><td>${u.name}</td><td>${u.purpose}</td><td>${u.entryTime}</td>`;
-          tbody.appendChild(tr);
-        });
-      })
-      .catch(err => {
-        tbody.innerHTML = `<tr><td colspan='4' style='color:red; text-align:center;'>データ取得エラー: ${err.message}</td></tr>`;
-      });
-  }
-
-  function generateBulk() {
-    const s = document.getElementById("bulk-start").value.trim();
-    const e = document.getElementById("bulk-end").value.trim();
-    if (!s || !e) return alert("開始・終了IDを入れてください");
-
-    fetch(`${GAS_API_URL}?action=getUsersByIdRange&startId=${s}&endId=${e}`)
-      .then(res => res.json())
-      .then(users => {
-        const out = document.getElementByI
+    fetch(`${GAS_API_URL}?action=saveUser&userData=${encodeURIComponent(JSON.stringify
