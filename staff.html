@@ -90,7 +90,7 @@
       box-shadow: 0 3px 8px rgba(49, 130, 206, 0.4);
     }
 
-    /* 🪪 カード単体表示スタイル（画面プレビュー） */
+    /* 🪪 カード単体表示スタイル（画面プレビュー用） */
     .card-preview-frame {
       display: flex;
       justify-content: center;
@@ -129,7 +129,20 @@
     .card-barcode svg { width: 100%; height: 50px; }
     .card-footer { font-size: 8.5px; color: #718096; display: flex; justify-content: space-between; border-top: 1px dashed #cbd5e0; padding-top: 3px; }
 
-    /* 🖨️ A4・10面（上下余白11mm、左右余白14mm、91mm×55mm）完全印刷専用スタイル */
+    /* 注意書きアラート枠 */
+    .print-alert-box {
+      background-color: #fffaf0;
+      border: 1.5px solid #dd6b20;
+      border-radius: 6px;
+      padding: 10px 15px;
+      margin: 15px auto;
+      max-width: 500px;
+      text-align: left;
+      font-size: 12.5px;
+      color: #7b341e;
+    }
+
+    /* 🖨️ A4・10面（上下余白11mm、左右余白14mm、カード91mm×55mm）完全印刷専用スタイル */
     @media screen {
       #print-area { display: none; }
     }
@@ -147,6 +160,8 @@
         padding: 0mm !important; 
         margin: 0mm !important; 
         overflow: hidden !important; 
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
       .container, .header-bar, .no-print { 
@@ -166,6 +181,7 @@
         row-gap: 0mm !important;
         margin: 0mm !important;
         padding: 0mm !important;
+        box-sizing: border-box !important;
         background: transparent !important;
       }
 
@@ -178,6 +194,8 @@
         min-height: 55mm !important;
         box-sizing: border-box !important; 
         overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
 
       .print-slot.empty {
@@ -195,8 +213,6 @@
         padding: 3.5mm 4.5mm 2.5mm 4.5mm !important; 
         background: #f0f7ff !important;
         box-shadow: none !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
         box-sizing: border-box !important;
         page-break-inside: avoid !important;
       }
@@ -376,10 +392,16 @@
           <button type="button" class="pos-btn" onclick="selectSlot(10)">⑩ 右下</button>
         </div>
 
-        <button class="btn btn-blue no-print" style="width:100%; max-width:400px; margin:15px auto 0 auto; display:block; font-size:15px;" onclick="printSingleCard()">
+        <div class="print-alert-box">
+          <strong>⚠️ 縮小ズレ（86×52mmになる現象）を防ぐための設定：</strong><br>
+          印刷プレビュー画面で以下の2点を必ずご確認ください。<br>
+          1. <b>倍率（拡大/縮小）</b>： 「用紙に合わせる」ではなく<b>『 100% 』</b>にする<br>
+          2. <b>余白</b>： <b>『 なし（None） 』</b>にする
+        </div>
+
+        <button class="btn btn-blue no-print" style="width:100%; max-width:400px; margin:10px auto 0 auto; display:block; font-size:15px;" onclick="printSingleCard()">
           🖨️ 指定した位置（<span id="reg-selected-pos-text">① 左上</span>）に印刷
         </button>
-        <p style="font-size:11px; color:#718096; margin:5px 0 0 0;">※印刷プレビューで「余白: なし」「倍率: 100%」になっていることをご確認ください。</p>
       </div>
 
     </div>
@@ -419,7 +441,7 @@
     9: "⑨ 左下", 10: "⑩ 右下"
   };
 
-  /* ⚡ 画面切り替え（style.displayを直接操作） */
+  /* ⚡ 画面切り替え */
   function openScreen(targetId) {
     const screens = ['staff-menu', 'staff-status', 'staff-register', 'staff-bulk'];
     for (let i = 0; i < screens.length; i++) {
@@ -695,24 +717,4 @@
     fetch(`${GAS_API_URL}?action=getUsersByIdRange&startId=${s}&endId=${e}`)
       .then(res => res.json())
       .then(users => {
-        const out = document.getElementById("bulk-card-output");
-        const printArea = document.getElementById("print-area");
-        out.innerHTML = "";
-        printArea.innerHTML = "";
-        if (!users || users.length === 0) return alert("対象データがありません");
-
-        users.forEach((u, i) => {
-          out.innerHTML += `<div style="height:180px;">${buildCard(u, "bulk-bc-" + i)}</div>`;
-          printArea.innerHTML += `<div class="print-slot">${buildCard(u, "pbulk-bc-" + i)}</div>`;
-        });
-        users.forEach((u, i) => {
-          drawBarcode("bulk-bc-" + i, u.userId);
-          drawBarcode("pbulk-bc-" + i, u.userId);
-        });
-        document.getElementById("bulk-print-btn").style.display = "block";
-      })
-      .catch(err => alert("一括取得エラー: " + err.message));
-  }
-</script>
-</body>
-</html>
+        const out = document.getElementByI
