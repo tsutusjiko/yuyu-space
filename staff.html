@@ -7,15 +7,29 @@
   <style>
     body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 20px; background-color: #eceff1; color: #37474f; }
     .container { max-width: 850px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-    .view-screen { display: none; }
-    .view-screen.active { display: block; }
+    
+    /* 画面切り替え用 */
+    .view-screen { display: none !important; }
+    .view-screen.active { display: block !important; }
     
     .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cfd8dc; padding-bottom: 12px; margin-bottom: 20px; }
     h1 { font-size: 22px; margin: 0; color: #263238; }
     
     .menu-grid { display: flex; flex-direction: column; gap: 15px; }
-    .menu-card { display: flex; align-items: center; padding: 20px; background: #fafafa; border: 2px solid #cfd8dc; border-radius: 10px; cursor: pointer; text-decoration: none; color: #37474f; transition: 0.2s; }
-    .menu-card:hover { background: #e3f2fd; border-color: #2196f3; }
+    .menu-card { 
+      display: flex; 
+      align-items: center; 
+      padding: 20px; 
+      background: #fafafa; 
+      border: 2px solid #cfd8dc; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      text-decoration: none; 
+      color: #37474f; 
+      transition: all 0.2s ease-in-out; 
+      user-select: none;
+    }
+    .menu-card:hover { background: #e3f2fd; border-color: #2196f3; transform: translateY(-2px); }
     .menu-icon { font-size: 36px; margin-right: 20px; width: 45px; text-align: center; }
     .menu-info h3 { margin: 0 0 5px 0; font-size: 18px; color: #1976d2; }
     .menu-info p { margin: 0; font-size: 13px; color: #546e7a; }
@@ -74,10 +88,7 @@
       color: #4a5568;
       transition: all 0.15s ease-in-out;
     }
-    .pos-btn:hover {
-      border-color: #3182ce;
-      color: #3182ce;
-    }
+    .pos-btn:hover { border-color: #3182ce; color: #3182ce; }
     .pos-btn.active {
       background: #3182ce;
       color: white;
@@ -217,7 +228,7 @@
       <a href="index.html" class="btn btn-blue" style="text-decoration:none;">📱 子ども受付画面へ</a>
     </div>
     <div class="menu-grid">
-      <div class="menu-card" onclick="openScreen('staff-status'); loadActiveUsers();">
+      <div class="menu-card" onclick="openScreen('staff-status')">
         <div class="menu-icon">👥</div>
         <div class="menu-info">
           <h3>現在の在室者一覧</h3>
@@ -353,4 +364,365 @@
 
       <!-- 2. 10面用紙の印刷位置選択 -->
       <div style="text-align:center; border-top:1px dashed #cbd5e0; padding-top:15px;">
-        <strong style="color:
+        <strong style="color:#2b6cb0; font-size:15px;">🖨️ 名刺用紙（10面）の印刷位置を選択してください</strong>
+        <p style="font-size:12px; color:#718096; margin:4px 0 10px 0;">
+          印刷したいマス目（①〜⑩）をクリックしてください。（上下余白11mm/左右余白14mm/91×55mm規格）
+        </p>
+
+        <div class="pos-grid">
+          <button type="button" class="pos-btn active" onclick="selectSlot(1)">① 左上</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(2)">② 右上</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(3)">③ 2段目左</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(4)">④ 2段目右</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(5)">⑤ 3段目左</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(6)">⑥ 3段目右</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(7)">⑦ 4段目左</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(8)">⑧ 4段目右</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(9)">⑨ 左下</button>
+          <button type="button" class="pos-btn" onclick="selectSlot(10)">⑩ 右下</button>
+        </div>
+
+        <button class="btn btn-blue no-print" style="width:100%; max-width:400px; margin:15px auto 0 auto; display:block; font-size:15px;" onclick="printSingleCard()">
+          🖨️ 指定した位置（<span id="reg-selected-pos-text">① 左上</span>）に印刷
+        </button>
+        <p style="font-size:11px; color:#718096; margin:5px 0 0 0;">※印刷プレビューで「余白: なし」「倍率: 100%」になっていることをご確認ください。</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 4. カード一括印刷 -->
+  <div id="staff-bulk" class="view-screen">
+    <div class="header-bar">
+      <h1>🖨️ 利用者カード 一括作成</h1>
+      <button class="btn btn-back" onclick="openScreen('staff-menu')">🏠 メニューへ</button>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+      <input type="text" id="bulk-start" placeholder="開始ID (例:260001)" oninput="autoToHalfWidth(this)" style="padding:8px;">
+      <span>〜</span>
+      <input type="text" id="bulk-end" placeholder="終了ID (例:260010)" oninput="autoToHalfWidth(this)" style="padding:8px;">
+      <button class="btn btn-blue" onclick="generateBulk()">生成</button>
+    </div>
+    <button id="bulk-print-btn" class="btn btn-green no-print" style="width:100%; display:none; margin-bottom:15px;" onclick="window.print()">🖨️ まとめて印刷（A4 10面）</button>
+    <div id="bulk-card-output" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+  </div>
+
+</div>
+
+<!-- 🖨️ 印刷用A4グリッド枠（印刷時にのみ参照） -->
+<div id="print-area"></div>
+
+<script>
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyMrr61Ru5R67qcPi_cbIZevqX_80FCxmtWLKV8oeTlTQ0cMktmg_bZ34ULgzQ2uSaKfQ/exec";
+  let currentRegisteredUser = null;
+  let selectedSlotNumber = 1; // 1〜10
+
+  const slotNames = {
+    1: "① 左上", 2: "② 右上",
+    3: "③ 2段目左", 4: "④ 2段目右",
+    5: "⑤ 3段目左", 6: "⑥ 3段目右",
+    7: "⑦ 4段目左", 8: "⑧ 4段目右",
+    9: "⑨ 左下", 10: "⑩ 右下"
+  };
+
+  /* ⚡ 画面切り替え関数（最優先定義） */
+  window.openScreen = function(id) {
+    try {
+      const screens = document.querySelectorAll('.view-screen');
+      screens.forEach(el => el.classList.remove('active'));
+      
+      const target = document.getElementById(id);
+      if (target) {
+        target.classList.add('active');
+        window.scrollTo(0, 0);
+      }
+      
+      if (id === 'staff-status') {
+        loadActiveUsers();
+      }
+    } catch(err) {
+      console.error("Screen switch error:", err);
+    }
+  };
+
+  function autoToHalfWidth(elem) {
+    if (!elem || !elem.value) return;
+    elem.value = elem.value
+      .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+      .replace(/[Ａ-Ｚａ-ｚ]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+      .replace(/ー/g, '-');
+  }
+
+  /* === 和暦・西暦変換 === */
+  function toggleBdayMode() {
+    const isWareki = document.querySelector('input[name="bday-type"]:checked').value === 'wareki';
+    document.getElementById("wareki-box").style.display = isWareki ? "flex" : "none";
+    document.getElementById("seireki-box").style.display = isWareki ? "none" : "block";
+    updateDateDisplay();
+  }
+
+  function onWarekiChange() {
+    const era = document.getElementById("wareki-era").value;
+    const y = parseInt(document.getElementById("wareki-year").value, 10);
+    const m = parseInt(document.getElementById("wareki-month").value, 10);
+    if (!y || !m) {
+      document.getElementById("user-birthday").value = "";
+      document.getElementById("seireki-input").value = "";
+      updateDateDisplay();
+      return;
+    }
+    let base = era === "令和" ? 2018 : (era === "平成" ? 1988 : 1925);
+    const fullYear = base + y;
+    const mm = String(m).padStart(2, "0");
+    document.getElementById("user-birthday").value = `${fullYear}/${mm}`;
+    document.getElementById("seireki-input").value = `${fullYear}-${mm}`;
+    updateDateDisplay();
+  }
+
+  function onSeirekiChange() {
+    const val = document.getElementById("seireki-input").value;
+    if (!val) {
+      document.getElementById("user-birthday").value = "";
+      document.getElementById("wareki-year").value = "";
+      document.getElementById("wareki-month").value = "";
+      updateDateDisplay();
+      return;
+    }
+    const [y, m] = val.split("-").map(Number);
+    document.getElementById("user-birthday").value = `${y}/${String(m).padStart(2,"0")}`;
+    let era = "令和", wYear = y - 2018;
+    if (y * 100 + m < 201905) { era = "平成"; wYear = y - 1988; }
+    if (y * 100 + m < 198901) { era = "昭和"; wYear = y - 1925; }
+    document.getElementById("wareki-era").value = era;
+    document.getElementById("wareki-year").value = wYear;
+    document.getElementById("wareki-month").value = m;
+    updateDateDisplay();
+  }
+
+  function updateDateDisplay() {
+    const bday = document.getElementById("user-birthday").value;
+    const preview = document.getElementById("date-preview");
+    const isWareki = document.querySelector('input[name="bday-type"]:checked').value === 'wareki';
+    if (!bday) {
+      preview.innerText = isWareki ? "（西暦： 未入力）" : "（和暦： 未入力）";
+      return;
+    }
+    preview.innerText = isWareki ? `（西暦： ${bday}）` : `（和暦： ${document.getElementById("wareki-era").value}${document.getElementById("wareki-year").value}年${document.getElementById("wareki-month").value}月）`;
+  }
+
+  function setBirthdayValue(dateStr) {
+    if (!dateStr) return;
+    const ymMatch = String(dateStr).replace(/\//g, "-").match(/^(\d{4}-\d{2})/);
+    if (ymMatch) {
+      document.getElementById("seireki-input").value = ymMatch[1];
+      onSeirekiChange();
+    }
+  }
+
+  /* === 検索処理 === */
+  function searchUser() {
+    const id = document.getElementById("search-id").value.trim();
+    if (!id) return alert("検索するIDを入力してください");
+
+    fetch(`${GAS_API_URL}?action=getUserById&userId=${id}`)
+      .then(res => res.json())
+      .then(u => {
+        if (!u || !u.userId) return alert("該当する利用者は見つかりませんでした");
+        currentRegisteredUser = u;
+        document.getElementById("user-id").value = u.userId;
+        document.getElementById("user-name").value = u.name || "";
+        document.getElementById("guardian-name").value = u.guardianName || "";
+        document.getElementById("relation").value = u.relation || "";
+        document.getElementById("tel-1").value = u.tel1 || "";
+        document.getElementById("tel-2").value = u.tel2 || "";
+        setBirthdayValue(u.birthday || "");
+        
+        displayCardPreview(u);
+      })
+      .catch(err => alert("検索エラー: " + err.message));
+  }
+
+  /* === 保存処理 === */
+  function saveUserData() {
+    const name = document.getElementById("user-name").value.trim();
+    const bday = document.getElementById("user-birthday").value;
+    const id = document.getElementById("user-id").value;
+    const guardianName = document.getElementById("guardian-name").value.trim();
+    const relation = document.getElementById("relation").value.trim();
+    const tel1 = document.getElementById("tel-1").value.trim();
+    const tel2 = document.getElementById("tel-2").value.trim();
+
+    if (!name || !bday) return alert("氏名と生年月は必須項目です");
+
+    const payload = {
+      userId: id || null,
+      name: name,
+      birthday: bday,
+      guardianName: guardianName,
+      relation: relation,
+      tel1: tel1,
+      tel2: tel2
+    };
+
+    fetch(`${GAS_API_URL}?action=saveUser&userData=${encodeURIComponent(JSON.stringify(payload))}`)
+      .then(res => res.json())
+      .then(u => {
+        alert("登録・保存が完了しました！\n利用者ID: " + u.userId);
+        currentRegisteredUser = u;
+        document.getElementById("user-id").value = u.userId;
+        document.getElementById("search-id").value = u.userId;
+        
+        displayCardPreview(u);
+      })
+      .catch(err => alert("保存エラー: " + err.message));
+  }
+
+  function clearRegisterForm() {
+    currentRegisteredUser = null;
+    document.getElementById("user-id").value = "";
+    document.getElementById("search-id").value = "";
+    document.getElementById("user-name").value = "";
+    document.getElementById("guardian-name").value = "";
+    document.getElementById("relation").value = "";
+    document.getElementById("tel-1").value = "";
+    document.getElementById("tel-2").value = "";
+    document.getElementById("seireki-input").value = "";
+    document.getElementById("user-birthday").value = "";
+    document.getElementById("wareki-year").value = "";
+    document.getElementById("wareki-month").value = "";
+    updateDateDisplay();
+    document.getElementById("reg-card-preview").style.display = "none";
+  }
+
+  /* 🪪 カード単体イメージを表示 */
+  function displayCardPreview(u) {
+    document.getElementById("reg-card-preview").style.display = "block";
+    const out = document.getElementById("single-card-output");
+    out.innerHTML = buildCard(u, "single-preview-bc");
+    drawBarcode("single-preview-bc", u.userId);
+  }
+
+  /* 🖨️ 印刷位置を選択 */
+  function selectSlot(num) {
+    selectedSlotNumber = num;
+    document.querySelectorAll('.pos-btn').forEach((btn, idx) => {
+      btn.classList.toggle('active', (idx + 1) === num);
+    });
+    document.getElementById("reg-selected-pos-text").innerText = slotNames[num];
+  }
+
+  /* 🖨️ 指定位置への印刷 */
+  function printSingleCard() {
+    if (!currentRegisteredUser) return alert("利用者情報がありません");
+    
+    const printArea = document.getElementById("print-area");
+    printArea.innerHTML = "";
+
+    for (let i = 1; i <= 10; i++) {
+      const slot = document.createElement("div");
+      slot.className = "print-slot";
+      if (i === selectedSlotNumber) {
+        slot.innerHTML = buildCard(currentRegisteredUser, "print-single-bc");
+      } else {
+        slot.classList.add("empty");
+      }
+      printArea.appendChild(slot);
+    }
+
+    drawBarcode("print-single-bc", currentRegisteredUser.userId);
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  }
+
+  function buildCard(u, svgId) {
+    return `
+      <div class="biz-card">
+        <div class="card-header">
+          <div>🌱 遊ゆうスペース</div>
+          <div class="card-badge">利用者カード</div>
+        </div>
+        <div class="card-middle">
+          <div class="card-name">${u.name}<span class="card-honorific"> 様</span></div>
+          <div class="card-id-text">ID: ${u.userId}</div>
+        </div>
+        <div class="card-barcode"><svg id="${svgId}"></svg></div>
+        <div class="card-footer">
+          <div>つつじが丘市民センター</div>
+          <div>※入退室時にご提示ください</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function drawBarcode(id, val) {
+    try {
+      if (typeof JsBarcode === "function") {
+        JsBarcode("#" + id, String(val), { 
+          format: "CODE128", 
+          width: 2.0, 
+          height: 48, 
+          displayValue: true, 
+          fontSize: 12,
+          margin: 0,
+          background: "transparent",
+          lineColor: "#1a202c"
+        });
+      }
+    } catch(e){
+      console.error(e);
+    }
+  }
+
+  function loadActiveUsers() {
+    const tbody = document.getElementById("user-table-body");
+    tbody.innerHTML = "<tr><td colspan='4'>読み込み中...</td></tr>";
+    fetch(`${GAS_API_URL}?action=getActiveUsers`)
+      .then(res => res.json())
+      .then(users => {
+        tbody.innerHTML = "";
+        document.getElementById("active-count").innerText = users.length || 0;
+        if (!users || users.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>現在入室中の子どもはいません。</td></tr>";
+          return;
+        }
+        users.forEach(u => {
+          let tr = document.createElement("tr");
+          tr.innerHTML = `<td><b>${u.permitNumber}番</b></td><td>${u.name}</td><td>${u.purpose}</td><td>${u.entryTime}</td>`;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => {
+        tbody.innerHTML = `<tr><td colspan='4' style='color:red; text-align:center;'>データ取得エラー: ${err.message}</td></tr>`;
+      });
+  }
+
+  function generateBulk() {
+    const s = document.getElementById("bulk-start").value.trim();
+    const e = document.getElementById("bulk-end").value.trim();
+    if (!s || !e) return alert("開始・終了IDを入れてください");
+
+    fetch(`${GAS_API_URL}?action=getUsersByIdRange&startId=${s}&endId=${e}`)
+      .then(res => res.json())
+      .then(users => {
+        const out = document.getElementById("bulk-card-output");
+        const printArea = document.getElementById("print-area");
+        out.innerHTML = "";
+        printArea.innerHTML = "";
+        if (!users || users.length === 0) return alert("対象データがありません");
+
+        users.forEach((u, i) => {
+          out.innerHTML += `<div style="height:180px;">${buildCard(u, "bulk-bc-" + i)}</div>`;
+          printArea.innerHTML += `<div class="print-slot">${buildCard(u, "pbulk-bc-" + i)}</div>`;
+        });
+        users.forEach((u, i) => {
+          drawBarcode("bulk-bc-" + i, u.userId);
+          drawBarcode("pbulk-bc-" + i, u.userId);
+        });
+        document.getElementById("bulk-print-btn").style.display = "block";
+      })
+      .catch(err => alert("一括取得エラー: " + err.message));
+  }
+</script>
+</body>
+</html>
