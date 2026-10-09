@@ -105,8 +105,7 @@
       <div class="barcode-box">
         <div style="font-size: 50px;">📟</div>
         <h2 style="margin: 5px 0; color: #2980b9;">カードのバーコードを<br>「ピッ」としてね！</h2>
-        <input type="text" id="barcode-input" class="barcode-input" placeholder="ここをピッ！" autocomplete="off" inputmode="numeric" oninput="autoToHalfWidth(this)" onkeydown="handleBarcodeKey(event)">        <div id="scan-status" class="status-msg">リーダーを向けてスキャンしてください</div>
-      </div>
+<input type="text" id="barcode-input" class="barcode-input" placeholder="ここをピッ！" autocomplete="off" oninput="autoToHalfWidth(this)" onkeydown="handleBarcodeKey(event)">      </div>
       <button type="button" class="btn btn-switch" onclick="showScreen('screen-in-manual')">カードがない / はじめてのひと</button>
       <button type="button" class="btn btn-gray" onclick="showScreen('screen-in-purpose')">⬅️ もどる</button>
     </div>
@@ -233,15 +232,14 @@
     }
     
     function handleBarcodeKey(event) {
-      // Enterキーが押されたときだけ送信する
-      if (event.key === "Enter") {
-        event.preventDefault();
-        autoToHalfWidth(event.target);
-        const scannedId = event.target.value.trim();
-        if (!scannedId || isProcessing) return;
-        
-        document.getElementById("scan-status").innerText = "送信中...";
-        apiCheckIn({ type: 'id', value: scannedId });
+      if (event.key === "Enter" || event.keyCode === 229) {
+        setTimeout(() => {
+          autoToHalfWidth(event.target);
+          const scannedId = event.target.value.trim();
+          if (!scannedId || isProcessing) return;
+          document.getElementById("scan-status").innerText = "送信中...";
+          apiCheckIn({ type: 'id', value: scannedId });
+        }, 20);
       }
     } 
     
