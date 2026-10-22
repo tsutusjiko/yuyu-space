@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.json">
 
-  <!-- ⚡ 画面切り替えプログラムを最優先で定義 -->
+  <!-- ⚡ 画面切り替えプログラム -->
   <script>
     function openScreen(targetId) {
       try {
@@ -172,7 +172,7 @@
       color: #7b341e;
     }
 
-    /* 🖨️ A4・10面（上下余白11mm、左右余白14mm、カード91mm×55mm）完全印刷専用スタイル */
+    /* 🖨️ A4・10面完全印刷専用スタイル */
     @media screen {
       #print-area { display: none; }
     }
@@ -220,8 +220,6 @@
         height: 55mm !important; 
         max-width: 91mm !important;
         max-height: 55mm !important;
-        min-width: 91mm !important;
-        min-height: 55mm !important;
         box-sizing: border-box !important; 
         overflow: hidden !important;
         margin: 0 !important;
@@ -591,4 +589,215 @@
       tel2: tel2
     };
 
-    fetch(`${GAS_API_URL}?action=saveUser&userData=${encodeURIComponent(JSON.stringify
+    fetch(`${GAS_API_URL}?action=saveUser&userData=${encodeURIComponent(JSON.stringify(payload))}`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          alert(`登録・更新が完了しました！\n利用者ID: ${res.userId}\nお名前: ${res.name} 様`);
+          currentRegisteredUser = res;
+          document.getElementById("user-id").value = res.userId;
+          displayCardPreview(res);
+        } else {
+          alert("保存エラー: " + (res.message || "処理に失敗しました"));
+        }
+      })
+      .catch(err => alert("通信エラー: " + err.message));
+  }
+
+  function clearRegisterForm() {
+    document.getElementById("user-id").value = "";
+    document.getElementById("search-id").value = "";
+    document.getElementById("user-name").value = "";
+    document.getElementById("guardian-name").value = "";
+    document.getElementById("relation").value = "";
+    document.getElementById("tel-1").value = "";
+    document.getElementById("tel-2").value = "";
+    document.getElementById("wareki-year").value = "";
+    document.getElementById("wareki-month").value = "";
+    document.getElementById("seireki-input").value = "";
+    document.getElementById("user-birthday").value = "";
+    document.getElementById("reg-card-preview").style.display = "none";
+    updateDateDisplay();
+    currentRegisteredUser = null;
+  }
+
+  /* === カードプレビュー表示 === */
+  function createCardHtml(user, barcodeId) {
+    return `
+      <div class="biz-card">
+        <div class="card-header">
+          <div>🌱 遊ゆうスペース</div>
+          <div class="card-badge">利用者カード</div>
+        </div>
+        <div class="card-middle">
+          <div class="card-name">${user.name}<span class="card-honorific"> 様</span></div>
+          <div class="card-id-text">ID: ${user.userId}</div>
+        </div>
+        <div class="card-barcode">
+          <svg id="${barcodeId}"></svg>
+        </div>
+        <div class="card-footer">
+          <div>つつじが丘市民センター</div>
+          <div>※入退室時にご提示ください</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function displayCardPreview(user) {
+    const previewContainer = document.getElementById("reg-card-preview");
+    const output = document.getElementById("single-card-output");
+    output.innerHTML = createCardHtml(user, "preview-barcode-svg");
+
+    try {
+      JsBarcode("#preview-barcode-svg", String(user.userId), {
+        format: "CODE128",
+        width: 1.8,
+        height: 48,
+        displayValue: true,
+        fontSize: 12,
+        margin: 0,
+        background: "transparent",
+        lineColor: "#1a202c"
+      });
+    } catch (e) {
+      console.error(e);
+    }
+    previewContainer.style.display = "block";
+  }
+
+  /* === 10面位置指定印刷 === */
+  function selectSlot(num) {
+    selectedSlotNumber = num;
+    document.querySelectorAll(".pos-btn").forEach((btn, idx) => {
+      btn.classList.toggle("active", idx + 1 === num);
+    });
+    document.getElementById("reg-selected-pos-text").innerText = slotNames[num];
+  }
+
+  function printSingleCard() {
+    if (!currentRegisteredUser) return alert("印刷対象の利用者データがありません");
+
+    const printArea = document.getElementById("print-area");
+    printArea.innerHTML = "";
+
+    for (let i = 1; i <= 10; i++) {
+      const slotDiv = document.createElement("div");
+      slotDiv.className = "print-slot" + (i === selectedSlotNumber ? "" : " empty");
+
+      if (i === selectedSlotNumber) {
+        slotDiv.innerHTML = createCardHtml(currentRegisteredUser, "print-barcode-" + i);
+      }
+      printArea.appendChild(slotDiv);
+    }
+
+    try {
+      JsBarcode("#print-barcode-" + selectedSlotNumber, String(currentRegisteredUser.userId), {
+        format: "CODE128",
+        width: 1.8,
+        height: 44,
+        displayValue: true,
+        fontSize: 11,
+        margin: 0,
+        background: "transparent",
+        lineColor: "#1a202c"
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    window.print();
+  }
+
+  /* === 在室者一覧の読み込み === */
+  function loadActiveUsers() {
+    const tbody = document.getElementById("user-table-body");
+    const countSpan = document.getElementById("active-count");
+    tbody.innerHTML = "<tr><td colspan='4'>読み込み中...</td></tr>";
+
+    fetch(`${GAS_API_URL}?action=getActiveUsers`)
+      .then(res => res.json())
+      .then(users => {
+        tbody.innerHTML = "";
+        countSpan.innerText = users ? users.length : 0;
+        if (!users || users.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>現在、在室中の子どもはいません。</td></tr>";
+          return;
+        }
+        users.forEach(u => {
+          let tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="font-weight:bold; color:#e53e3e;">${u.permitNumber} 番</td>
+            <td style="font-weight:bold;">${u.name}</td>
+            <td>${u.purpose}</td>
+            <td>${u.entryTime.split(" ")[1] || u.entryTime}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => {
+        tbody.innerHTML = `<tr><td colspan='4' style='color:red;'>取得エラー: ${err.message}</td></tr>`;
+      });
+  }
+
+  /* === ★カード一括作成処理（動かなかった原因部分） === */
+  function generateBulk() {
+    const startId = document.getElementById("bulk-start").value.trim();
+    const endId = document.getElementById("bulk-end").value.trim();
+    const output = document.getElementById("bulk-card-output");
+    const printBtn = document.getElementById("bulk-print-btn");
+    const printArea = document.getElementById("print-area");
+
+    if (!startId || !endId) {
+      return alert("開始IDと終了IDを両方入力してください。");
+    }
+
+    output.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>データ取得中...</p>";
+    printBtn.style.display = "none";
+
+    fetch(`${GAS_API_URL}?action=getUsersByIdRange&startId=${encodeURIComponent(startId)}&endId=${encodeURIComponent(endId)}`)
+      .then(res => res.json())
+      .then(users => {
+        output.innerHTML = "";
+        printArea.innerHTML = "";
+
+        if (!users || users.length === 0) {
+          output.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:red;'>該当する利用者は見つかりませんでした。</p>";
+          return;
+        }
+
+        // 画面表示用プレビュー & 印刷用領域を生成
+        users.forEach((u, idx) => {
+          // 画面用
+          const screenCard = document.createElement("div");
+          screenCard.innerHTML = createCardHtml(u, `bulk-screen-barcode-${u.userId}`);
+          output.appendChild(screenCard);
+
+          // 印刷用スロット
+          const printSlot = document.createElement("div");
+          printSlot.className = "print-slot";
+          printSlot.innerHTML = createCardHtml(u, `bulk-print-barcode-${u.userId}`);
+          printArea.appendChild(printSlot);
+
+          // バーコード描画
+          setTimeout(() => {
+            try {
+              JsBarcode(`#bulk-screen-barcode-${u.userId}`, String(u.userId), {
+                format: "CODE128", width: 1.8, height: 48, displayValue: true, fontSize: 12, margin: 0
+              });
+              JsBarcode(`#bulk-print-barcode-${u.userId}`, String(u.userId), {
+                format: "CODE128", width: 1.8, height: 44, displayValue: true, fontSize: 11, margin: 0
+              });
+            } catch (err) {}
+          }, 10);
+        });
+
+        printBtn.style.display = "block";
+      })
+      .catch(err => {
+        output.innerHTML = `<p style='grid-column:1/-1; color:red; text-align:center;'>エラー: ${err.message}</p>`;
+      });
+  }
+</script>
+</body>
+</html>
