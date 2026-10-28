@@ -1,21 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<!-- 2026/10/5 追加 アプリ全画面化（URLバーを消す）設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.json"> 
-<!-- 2026/10/5 ここまで --> 
-<!-- 2026/10/9 アイコンを子どものアイコンに変更 -->
-  <!-- ★ここから追加：子どものアプリアイコン設定 -->
-  <!-- ブラウザのタブ用アイコン（ファビコン） -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2225%22 fill=%22%23ff7675%22/><text y=%2275%22 x=%2210%22 font-size=%2275%22>🧒</text></svg>">
-  
-  <!-- iPad / iPhoneのホーム画面アイコン -->
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2374b9ff%22/><text y=%2275%22 x=%2210%22 font-size=%2275%22>🧒</text></svg>">
-  <!-- ★ここまで追加 -->
-<!-- 2026/10/9 ここまで -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>遊ゆうスペース うけつけ</title>
@@ -25,11 +16,9 @@
     header h1 { margin: 0; font-size: 26px; letter-spacing: 2px; }
     .container { flex: 1; max-width: 520px; width: 92%; margin: 20px auto; background: white; padding: 25px 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); box-sizing: border-box; }
     
-    /* 画面切り替え制御 */
     .view-screen { display: none; text-align: center; }
     .view-screen.active { display: block; }
 
-    /* メインボタンスタイル */
     .btn-main { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 30px 15px; font-size: 26px; font-weight: bold; color: white; border: none; border-radius: 16px; cursor: pointer; text-decoration: none; box-shadow: 0 6px 12px rgba(0,0,0,0.12); margin-bottom: 20px; box-sizing: border-box; }
     .btn-main:active { transform: scale(0.97); }
     .btn-in { background: linear-gradient(135deg, #2ecc71, #27ae60); }
@@ -37,7 +26,6 @@
     .btn-icon { font-size: 50px; margin-bottom: 5px; }
     .btn-subtext { font-size: 15px; font-weight: normal; margin-top: 5px; opacity: 0.9; }
 
-    /* 汎用ボタン */
     .btn { display: block; width: 100%; box-sizing: border-box; padding: 16px; margin: 12px 0; font-size: 19px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; }
     .btn-purpose { background-color: #f1f2f6; color: #57606f; border: 3px solid #ced6e0; font-size: 20px; }
     .btn-purpose.selected-play { background-color: #ff7675; color: white; border-color: #d63031; }
@@ -48,19 +36,17 @@
     .btn-submit { background-color: #2ecc71; font-size: 20px; }
     .btn-gray { background-color: #7f8c8d; font-size: 15px; padding: 12px; }
 
-    /* バーコードスキャン枠 */
     .barcode-box { background: #eef9ff; border: 3px dashed #3498db; border-radius: 12px; padding: 20px 10px; margin: 15px 0; }
-    .barcode-input { width: 85%; padding: 12px; font-size: 24px; text-align: center; border: 2px solid #3498db; border-radius: 8px; margin: 10px auto; display: block; font-weight: bold; }
-    .status-msg { font-size: 15px; font-weight: bold; color: #e67e22; min-height: 22px; }
+    .barcode-input { width: 85%; padding: 12px; font-size: 24px; text-align: center; border: 2px solid #3498db; border-radius: 8px; margin: 10px auto; display: block; font-weight: bold; letter-spacing: 2px; }
+    .barcode-input:focus { outline: none; border-color: #2980b9; box-shadow: 0 0 8px rgba(52, 152, 219, 0.4); }
+    .status-msg { font-size: 15px; font-weight: bold; color: #e67e22; min-height: 22px; margin-top: 5px; }
 
-    /* テンキー */
     .display-box { font-size: 32px; font-weight: bold; background: #dfe6e9; padding: 12px; border-radius: 8px; margin-bottom: 15px; min-height: 38px; color: #2d3436; }
     .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 320px; margin: 0 auto 15px auto; }
     .key { background: #ffffff; border: 2px solid #b2bec3; font-size: 26px; font-weight: bold; padding: 16px 0; border-radius: 10px; cursor: pointer; }
     .key:active { background: #dfe6e9; }
     .key.clear { background: #ff7675; color: white; border-color: #d63031; }
 
-    /* 結果画面 */
     .result-box { background: #e8f8f5; border: 2px dashed #2ecc71; padding: 15px; border-radius: 8px; margin-top: 15px; }
     .result-box.out { background: #fff5f5; border-color: #ff7675; }
     .num-display { font-size: 56px; font-weight: bold; color: #e74c3c; margin: 10px 0; }
@@ -77,7 +63,7 @@
 
   <div class="container">
 
-    <!-- 1. トップメニュー (旧 PageIO) -->
+    <!-- 1. トップメニュー -->
     <div id="screen-top" class="view-screen active">
       <button class="btn-main btn-in" onclick="openCheckIn()">
         <span class="btn-icon">🛝</span>
@@ -96,8 +82,8 @@
       <h3>きょうは なにしにきたかな？</h3>
       <button type="button" id="btn-play" class="btn btn-purpose" onclick="togglePurpose('遊び')">🛝 あそび</button>
       <button type="button" id="btn-study" class="btn btn-purpose" onclick="togglePurpose('べんきょう')">✏️ べんきょう</button>
-      <button type="button" id="btn-goto-scan" class="btn btn-next" onclick="showScreen('screen-in-scan'); focusBarcodeInput();" disabled>えらんだら ここをおしてね 👉</button>
-      <button type="button" class="btn btn-gray" onclick="showScreen('screen-top')">🏠 もどる</button>
+      <button type="button" id="btn-goto-scan" class="btn btn-next" onclick="goToScanScreen()" disabled>えらんだら ここをおしてね 👉</button>
+      <button type="button" class="btn btn-gray" onclick="resetAndGoTop()">🏠 もどる</button>
     </div>
 
     <!-- 3. 入室 - バーコードスキャン -->
@@ -105,9 +91,19 @@
       <div class="barcode-box">
         <div style="font-size: 50px;">📟</div>
         <h2 style="margin: 5px 0; color: #2980b9;">カードのバーコードを<br>「ピッ」としてね！</h2>
-        <input type="text" id="barcode-input" class="barcode-input" placeholder="ここをピッ！" autocomplete="off" oninput="autoToHalfWidth(this)" onkeydown="handleBarcodeKey(event)">
+        <!-- ★ inputmode="numeric" と pattern="[0-9]*" を付与し全角誤変換を防止 -->
+        <input type="text" 
+               id="barcode-input" 
+               class="barcode-input" 
+               placeholder="ここをピッ！" 
+               inputmode="numeric"
+               pattern="[0-9]*"
+               autocomplete="off" 
+               autocorrect="off"
+               onkeydown="handleBarcodeKey(event)">
+        <div id="scan-status" class="status-msg">リーダーを向けてスキャンしてください</div>
       </div>
-      <button type="button" class="btn btn-switch" onclick="showScreen('screen-in-manual')">カードがない / はじめてのひと</button>
+      <button type="button" class="btn btn-switch" onclick="goToManualScreen()">カードがない / はじめてのひと</button>
       <button type="button" class="btn btn-gray" onclick="showScreen('screen-in-purpose')">⬅️ もどる</button>
     </div>
     
@@ -115,12 +111,13 @@
     <div id="screen-in-manual" class="view-screen">
       <h3>カードがない・はじめての ひと</h3>
       <div style="text-align: left; font-weight: bold; margin-top: 10px;">① IDが わかるひと</div>
-      <input type="text" id="manual-id" style="width:100%; padding:12px; font-size:18px; box-sizing:border-box;" placeholder="例: 260001" inputmode="numeric" oninput="autoToHalfWidth(this)">
+      <!-- ★ autocomplete="off" を明示 -->
+      <input type="text" id="manual-id" style="width:100%; padding:12px; font-size:18px; box-sizing:border-box;" placeholder="例: 260001" inputmode="numeric" autocomplete="off" oninput="autoToHalfWidth(this)">
       <div style="margin: 10px 0; font-weight: bold; color: #7f8c8d;">── または ──</div>
       <div style="text-align: left; font-weight: bold;">② はじめて / IDが わからないひと</div>
-      <input type="text" id="manual-name" style="width:100%; padding:12px; font-size:18px; box-sizing:border-box;" placeholder="なまえ（フルネーム）">
-      <button type="button" class="btn btn-submit" style="margin-top:15px;" onclick="submitManualEntry()">これで うけつけする</button>
-      <button type="button" class="btn btn-switch" onclick="showScreen('screen-in-scan'); focusBarcodeInput();">📟 バーコードを つかう</button>
+      <input type="text" id="manual-name" style="width:100%; padding:12px; font-size:18px; box-sizing:border-box;" placeholder="なまえ（フルネーム）" autocomplete="off">
+      <button type="button" id="btn-manual-submit" class="btn btn-submit" style="margin-top:15px;" onclick="submitManualEntry()">これで うけつけする</button>
+      <button type="button" class="btn btn-switch" onclick="goToScanScreen()">📟 バーコードを つかう</button>
       <button type="button" class="btn btn-gray" onclick="showScreen('screen-in-purpose')">⬅️ もどる</button>
     </div>
 
@@ -132,7 +129,7 @@
         <div id="in-result-num" class="num-display">-</div>
         <p style="font-weight: bold; font-size: 16px;">このばんごうの「にゅうしつカード」を<br>せんせい から もらってね！</p>
       </div>
-      <button type="button" class="btn btn-submit" style="background-color:#34495e; margin-top:20px;" onclick="showScreen('screen-top')">🏠 さいしょの がめんへ</button>
+      <button type="button" class="btn btn-submit" style="background-color:#34495e; margin-top:20px;" onclick="resetAndGoTop()">🏠 さいしょの がめんへ</button>
       <div id="in-timer" class="auto-timer">5 秒後に さいしょの画面へ もどります</div>
     </div>
 
@@ -155,7 +152,7 @@
         <div></div>
       </div>
       <button id="btn-submit-out" class="btn btn-submit" style="background-color:#ff7675;" onclick="submitCheckOut()" disabled>おうちに かえる</button>
-      <button type="button" class="btn btn-gray" onclick="showScreen('screen-top')">↩️ やめる</button>
+      <button type="button" class="btn btn-gray" onclick="resetAndGoTop()">↩️ やめる</button>
     </div>
 
     <!-- 7. 退室 - 完了画面 -->
@@ -166,7 +163,7 @@
         <p style="font-weight: bold; font-size: 16px; color: #e74c3c;">「にゅうしつカード」を<br>せんせいに かえしてね！</p>
         <p style="font-size: 18px; font-weight: bold; color: #2ecc71;">👋 ばいばい、またね！</p>
       </div>
-      <button class="btn btn-submit" style="background-color:#3498db; margin-top:20px;" onclick="showScreen('screen-top')">🏠 さいしょの がめんへ</button>
+      <button class="btn btn-submit" style="background-color:#3498db; margin-top:20px;" onclick="resetAndGoTop()">🏠 さいしょの がめんへ</button>
       <div id="out-timer" class="auto-timer">5 秒後に さいしょの画面へ もどります</div>
     </div>
 
@@ -175,7 +172,6 @@
   <footer>つつじが丘市民センター 遊ゆうスペース</footer>
 
   <script>
-    // ★★★ あなたのGASのWebアプリURLをここに貼り付けてください ★★★
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyMrr61Ru5R67qcPi_cbIZevqX_80FCxmtWLKV8oeTlTQ0cMktmg_bZ34ULgzQ2uSaKfQ/exec";
 
     let selectedPurposes = [];
@@ -189,6 +185,30 @@
       document.getElementById(screenId).classList.add('active');
     }
 
+    // ★ 全入力欄・状態を完全に初期化してトップへ戻る関数（個人情報の残留を防止）
+    function resetAndGoTop() {
+      if (autoTimer) clearInterval(autoTimer);
+      isProcessing = false;
+      selectedPurposes = [];
+      outInputNumber = "";
+
+      // 入力欄をすべて完全にクリア
+      document.getElementById("barcode-input").value = "";
+      document.getElementById("manual-id").value = "";
+      document.getElementById("manual-name").value = "";
+      document.getElementById("out-number-display").innerText = "";
+      document.getElementById("scan-status").innerText = "リーダーを向けてスキャンしてください";
+
+      // ボタン等のスタイル初期化
+      document.getElementById("btn-play").classList.remove("selected-play");
+      document.getElementById("btn-study").classList.remove("selected-study");
+      document.getElementById("btn-goto-scan").disabled = true;
+      document.getElementById("btn-submit-out").disabled = true;
+      document.querySelectorAll('button').forEach(b => b.disabled = false);
+
+      showScreen('screen-top');
+    }
+
     // 全角英数字を半角数字へ即時変換
     function autoToHalfWidth(elem) {
       if (!elem.value) return;
@@ -200,10 +220,7 @@
 
     /* === 入室関連 === */
     function openCheckIn() {
-      selectedPurposes = [];
-      document.getElementById("btn-play").classList.remove("selected-play");
-      document.getElementById("btn-study").classList.remove("selected-study");
-      document.getElementById("btn-goto-scan").disabled = true;
+      resetAndGoTop();
       showScreen('screen-in-purpose');
     }
 
@@ -225,22 +242,36 @@
       nextBtn.disabled = (selectedPurposes.length === 0);
     }
 
-    function focusBarcodeInput() {
+    function goToScanScreen() {
+      showScreen('screen-in-scan');
       const input = document.getElementById("barcode-input");
       input.value = "";
-    /*  document.getElementById("scan-status").innerText = "リーダーを向けてスキャンしてください"; */
-      setTimeout(() => input.focus(), 100);
+      document.getElementById("scan-status").innerText = "リーダーを向けてスキャンしてください";
+      setTimeout(() => input.focus(), 150);
+    }
+
+    function goToManualScreen() {
+      // 氏名・ID欄をクリアしてから画面を開く
+      document.getElementById("manual-id").value = "";
+      document.getElementById("manual-name").value = "";
+      showScreen('screen-in-manual');
     }
     
+    // ★ バーコード受信（全角確定Enter、高速入力、取りこぼし対策）
     function handleBarcodeKey(event) {
       if (event.key === "Enter" || event.keyCode === 229) {
+        event.preventDefault();
+        // わずかに待ってから値を取得・半角化
         setTimeout(() => {
-          autoToHalfWidth(event.target);
-          const scannedId = event.target.value.trim();
+          const inputElem = event.target;
+          autoToHalfWidth(inputElem);
+          const scannedId = inputElem.value.trim();
+          
           if (!scannedId || isProcessing) return;
-        /*  document.getElementById("scan-status").innerText = "送信中...";  */
+          
+          document.getElementById("scan-status").innerText = "送信中...";
           apiCheckIn({ type: 'id', value: scannedId });
-        }, 20);
+        }, 30);
       }
     } 
     
@@ -249,39 +280,51 @@
       const name = document.getElementById("manual-name").value.trim();
       if (!id && !name) return alert("IDまたはお名前を入力してください");
       if (isProcessing) return;
-      if (id) apiCheckIn({ type: 'id', value: id });
-      else apiCheckIn({ type: 'guest_name', value: name });
+
+      if (id) {
+        apiCheckIn({ type: 'id', value: id });
+      } else {
+        apiCheckIn({ type: 'guest_name', value: name });
+      }
     }
 
     function apiCheckIn(userData) {
       isProcessing = true;
+      document.querySelectorAll('button').forEach(b => b.disabled = true);
+
       const url = `${GAS_API_URL}?action=doCheckIn&userData=${encodeURIComponent(JSON.stringify(userData))}&purposes=${encodeURIComponent(JSON.stringify(selectedPurposes))}`;
       
       fetch(url)
         .then(res => res.json())
         .then(res => {
-          isProcessing = false;
+          document.querySelectorAll('button').forEach(b => b.disabled = false);
           if (res.success || res.todayNumber) {
+            // 送信成功したら入力欄を即クリア
+            document.getElementById("barcode-input").value = "";
+            document.getElementById("manual-id").value = "";
+            document.getElementById("manual-name").value = "";
+
             document.getElementById("in-result-name").innerText = res.name + " さん、いらっしゃい！";
             document.getElementById("in-result-num").innerText = res.todayNumber + " 番";
             showScreen('screen-in-result');
             startTimer('in-timer', 5);
           } else {
+            isProcessing = false;
             alert("エラー: " + (res.message || "受付できませんでした"));
-            focusBarcodeInput();
+            goToScanScreen();
           }
         })
         .catch(err => {
           isProcessing = false;
+          document.querySelectorAll('button').forEach(b => b.disabled = false);
           alert("通信エラーが発生しました: " + err.message);
-          focusBarcodeInput();
+          goToScanScreen();
         });
     }
 
     /* === 退室関連 === */
     function openCheckOut() {
-      outInputNumber = "";
-      updateOutDisplay();
+      resetAndGoTop();
       showScreen('screen-out-input');
     }
 
@@ -304,24 +347,28 @@
     function submitCheckOut() {
       if (!outInputNumber || isProcessing) return;
       isProcessing = true;
+      document.querySelectorAll('button').forEach(b => b.disabled = true);
+
       const url = `${GAS_API_URL}?action=doCheckOut&permitNumber=${encodeURIComponent(outInputNumber)}`;
 
       fetch(url)
         .then(res => res.json())
         .then(res => {
-          isProcessing = false;
+          document.querySelectorAll('button').forEach(b => b.disabled = false);
           if (res.success) {
             document.getElementById("out-result-name").innerText = res.name + " さん、またね！";
             document.getElementById("out-result-num").innerText = outInputNumber + " 番";
             showScreen('screen-out-result');
             startTimer('out-timer', 5);
           } else {
+            isProcessing = false;
             alert(res.message || "退室処理に失敗しました");
             clearOutKey();
           }
         })
         .catch(err => {
           isProcessing = false;
+          document.querySelectorAll('button').forEach(b => b.disabled = false);
           alert("通信エラー: " + err.message);
         });
     }
@@ -335,7 +382,7 @@
         remain--;
         if (remain <= 0) {
           clearInterval(autoTimer);
-          showScreen('screen-top');
+          resetAndGoTop(); // ★ 5秒経過後は完全リセットしてトップに戻る
         } else {
           elem.innerText = `${remain} 秒後に さいしょの画面へ もどります`;
         }
