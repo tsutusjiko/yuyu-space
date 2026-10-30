@@ -83,7 +83,7 @@
     .wareki-input { width: 55px !important; text-align: center; }
     .date-preview { font-size: 12px; color: #3182ce; font-weight: bold; margin-top: 4px; }
 
-    /* 画面プレビュー用テーブル */
+    /* 表スタイル */
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th { background-color: #34495e; color: white; padding: 10px; text-align: left; }
     td { padding: 10px; border-bottom: 1px solid #cfd8dc; }
@@ -261,7 +261,7 @@
         page-break-inside: avoid !important;
       }
 
-      /* 2. ★日別入館者一覧 印刷時（1ページ当たり30行完全固定） */
+      /* 2. ★日別入館者一覧 印刷時（左右余白8mm / 文字拡大 / A4フル縦活用） */
       body.print-mode-daily {
         background: white !important;
         padding: 0 !important;
@@ -272,7 +272,7 @@
       }
       body.print-mode-daily @page {
         size: A4 portrait;
-        margin: 8mm 12mm 8mm 12mm;
+        margin: 8mm 8mm 8mm 8mm !important; /* ★左右余白8mm */
       }
       body.print-mode-daily .container,
       body.print-mode-daily #print-area {
@@ -282,10 +282,11 @@
         display: block !important;
       }
 
-      /* 1ページ分のコンテナ */
+      /* 1ページ分のコンテナ（297mm - 16mm = 281mm） */
       .print-page {
         width: 100% !important;
-        height: 278mm !important;
+        height: 280mm !important;
+        max-height: 280mm !important;
         box-sizing: border-box !important;
         page-break-after: always !important;
         break-after: page !important;
@@ -300,32 +301,32 @@
       }
 
       .print-header-area {
-        margin-bottom: 6px !important;
+        margin-bottom: 5px !important;
         border-bottom: 2px solid #222 !important;
         padding-bottom: 4px !important;
       }
       .print-title {
-        font-size: 19px !important;
-        margin: 0 !important;
+        font-size: 22px !important; /* ★タイトル文字拡大 */
+        margin: 0 0 4px 0 !important;
         text-align: center !important;
         font-weight: bold !important;
+        letter-spacing: 1.5px !important;
       }
       .print-meta-row {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        font-size: 12.5px !important;
+        font-size: 14px !important; /* ★メタ文字拡大 */
         font-weight: bold !important;
-        margin-top: 3px !important;
       }
 
       .print-summary-box {
-        border: 1px solid #444 !important;
-        background: #f7f7f7 !important;
-        padding: 5px 10px !important;
+        border: 1.5px solid #333 !important;
+        background: #f8f9fa !important;
+        padding: 6px 12px !important;
         margin-bottom: 6px !important;
-        font-size: 11.5px !important;
-        line-height: 1.3 !important;
+        font-size: 12.5px !important; /* ★集計文字拡大 */
+        line-height: 1.35 !important;
       }
 
       /* 30行テーブル */
@@ -336,21 +337,22 @@
       }
       .print-table th, .print-table td {
         border: 1px solid #333 !important;
-        padding: 0 6px !important;
-        font-size: 11px !important;
+        padding: 0 8px !important;
         box-sizing: border-box !important;
       }
       .print-table th {
-        background-color: #eee !important;
+        background-color: #eaeaea !important;
         color: #000 !important;
-        height: 7mm !important;
+        height: 8.5mm !important;
         font-weight: bold !important;
+        font-size: 13.5px !important; /* ★見出し文字拡大 */
         text-align: center !important;
       }
-      /* ★1行を6.7mmに固定し、30行が確実に収まるように設計 */
+      /* ★1行高さを7.4mmに拡張し文字サイズを13pxに拡大（A4フル印刷） */
       .print-table td {
-        height: 6.7mm !important;
-        max-height: 6.7mm !important;
+        height: 7.4mm !important;
+        max-height: 7.4mm !important;
+        font-size: 13px !important;
         overflow: hidden !important;
         white-space: nowrap !important;
         text-overflow: ellipsis !important;
@@ -361,9 +363,10 @@
         margin-top: auto !important;
         display: flex !important;
         justify-content: space-between !important;
-        font-size: 10.5px !important;
-        color: #555 !important;
-        padding-top: 3px !important;
+        font-size: 11px !important;
+        color: #444 !important;
+        padding-top: 4px !important;
+        border-top: 1px dashed #aaa !important;
       }
     }
   </style>
@@ -392,7 +395,7 @@
         <div class="menu-icon">📅</div>
         <div class="menu-info">
           <h3>日別入館者一覧・印刷（30行/頁）</h3>
-          <p>指定した日付の入館者一覧表示、目的別集計、A4印刷（30行/ページ）を行います。</p>
+          <p>指定した日付の入館者一覧表示、目的別集計、A4フル印刷（30行/ページ）を行います。</p>
         </div>
       </div>
       <div class="menu-card" onclick="openScreen('staff-register')">
@@ -443,7 +446,7 @@
       <label for="daily-target-date" style="font-weight:bold; font-size:15px;">表示する日付：</label>
       <input type="date" id="daily-target-date" style="padding:8px 12px; font-size:15px; border:1px solid #cbd5e0; border-radius:6px;">
       <button class="btn btn-blue" onclick="fetchDailyLogs()">🔍 表示</button>
-      <button class="btn btn-purple" onclick="printDailyList()" style="margin-left:auto;">🖨️ この一覧を印刷する（30行/頁）</button>
+      <button class="btn btn-purple" onclick="printDailyList()" style="margin-left:auto;">🖨️ A4フル印刷（30行/頁）</button>
     </div>
 
     <!-- 画面表示用 集計エリア -->
@@ -611,7 +614,7 @@
 <!-- 🖨️ 名刺カード印刷用枠 -->
 <div id="print-area"></div>
 
-<!-- 🖨️ 日別一覧印刷用コンテナ（1ページ当たり30行を完全制御） -->
+<!-- 🖨️ 日別一覧印刷用コンテナ（1ページ30行・左右余白8mm） -->
 <div id="daily-print-area"></div>
 
 <script>
@@ -637,7 +640,7 @@
   }
 
   /* =========================================
-     ★ 日別入館者一覧 & 30行単位の印刷処理
+     ★ 日別入館者一覧 & 30行単位・フル印刷処理
      ========================================= */
   function initDailyScreen() {
     const dateInput = document.getElementById("daily-target-date");
@@ -709,7 +712,7 @@
   }
 
   /**
-   * ★ 1ページあたり30行完全固定の印刷用DOM構築＆印刷
+   * ★ 左右余白8mm・文字拡大・30行フル印刷DOM構築
    */
   function printDailyList() {
     if (!currentDailyData || !currentDailyData.logs || currentDailyData.logs.length === 0) {
@@ -723,12 +726,10 @@
     const logs = currentDailyData.logs;
     const totalPages = Math.ceil(logs.length / ROWS_PER_PAGE) || 1;
 
-    // 日付フォーマット
     const parts = currentDailyData.date.split("/");
     const formattedDate = `${parts[0]}年${parts[1]}月${parts[2]}日`;
 
-    // 集計テキスト作成
-    let sumText = `【集計】 総人数：${currentDailyData.total}名 ｜ 内訳：`;
+    let sumText = `【来館者集計】 総人数：${currentDailyData.total}名 ｜ 内訳：`;
     const partsSum = [];
     for (const [p, c] of Object.entries(currentDailyData.summary || {})) {
       partsSum.push(`${p}：${c}名`);
@@ -739,8 +740,8 @@
       const pageDiv = document.createElement("div");
       pageDiv.className = "print-page";
 
-      // ヘッダー部（タイトル、日付、ページ番号）
-      let headerHtml = `
+      // 全ページ共通ヘッダー（タイトル・日付・ページ番号・集計ボックス）
+      const headerHtml = `
         <div class="print-header-area">
           <h2 class="print-title">遊ゆうスペース 入館者一覧表</h2>
           <div class="print-meta-row">
@@ -748,29 +749,24 @@
             <div>（ ${p + 1} / ${totalPages} ページ ）</div>
           </div>
         </div>
+        <div class="print-summary-box">${sumText}</div>
       `;
 
-      // 1ページ目にのみ集計ボックスを挿入
-      if (p === 0) {
-        headerHtml += `<div class="print-summary-box">${sumText}</div>`;
-      }
-
-      // テーブル作成
+      // 列幅設定（左右余白8mmのワイド幅に最適化）
       let tableHtml = `
         <table class="print-table">
           <thead>
             <tr>
-              <th style="width:12%;">入館番号</th>
-              <th style="width:16%;">入館時間</th>
-              <th style="width:16%;">退館時間</th>
-              <th style="width:30%;">氏名</th>
-              <th style="width:26%;">利用目的</th>
+              <th style="width:11%;">入館番号</th>
+              <th style="width:14%;">入館時間</th>
+              <th style="width:14%;">退館時間</th>
+              <th style="width:33%;">氏名</th>
+              <th style="width:28%;">利用目的</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-      // 該当ページのログ（最大30行）
       const pageLogs = logs.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
 
       for (let r = 0; r < ROWS_PER_PAGE; r++) {
@@ -778,15 +774,15 @@
           const log = pageLogs[r];
           tableHtml += `
             <tr>
-              <td style="text-align:center; font-weight:bold;">${log.permitNumber}</td>
-              <td style="text-align:center;">${log.entryTime || '-'}</td>
-              <td style="text-align:center;">${log.exitTime || '-'}</td>
-              <td>${log.name}</td>
+              <td style="text-align:center; font-weight:bold; font-size:13.5px;">${log.permitNumber}</td>
+              <td style="text-align:center; font-family:monospace;">${log.entryTime || '-'}</td>
+              <td style="text-align:center; font-family:monospace;">${log.exitTime || '-'}</td>
+              <td style="font-weight:bold;">${log.name}</td>
               <td>${log.purpose}</td>
             </tr>
           `;
         } else {
-          // 30行に満たない場合は空行で埋めて高さを一定に保つ
+          // 30行枠固定用の空行
           tableHtml += `
             <tr>
               <td>&nbsp;</td>
@@ -812,7 +808,6 @@
       printContainer.appendChild(pageDiv);
     }
 
-    // 印刷モードを日別リストに切り替えて印刷
     document.body.className = "print-mode-daily";
     window.print();
   }
