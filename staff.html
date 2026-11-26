@@ -172,9 +172,11 @@
     .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #3182ce; font-size: 13px; font-weight: 900; color: #1a365d; padding-bottom: 3px; }
     .card-badge { font-size: 9px; font-weight: bold; background-color: #3182ce; color: white; padding: 2px 6px; border-radius: 3px; }
     .card-middle { display: flex; align-items: center; justify-content: space-between; margin: 2px 0; }
+    .card-name-group { display: flex; flex-direction: column; line-height: 1.15; }
+    .card-user-kana { font-size: 9.5px; font-weight: bold; color: #4a5568; min-height: 11px; margin-bottom: 1px; }
     .card-name { font-size: 18px; font-weight: 900; color: #1a202c; }
     .card-honorific { font-size: 12px; font-weight: normal; color: #4a5568; }
-    .card-id-text { font-size: 12px; color: #2b6cb0; font-weight: bold; }
+    .card-id-text { font-size: 12px; color: #2b6cb0; font-weight: bold; flex-shrink: 0; margin-left: 6px; }
     .card-barcode { 
       background: white; 
       border: 1px solid #cbd5e0; 
@@ -890,6 +892,7 @@
         currentRegisteredUser = u;
         document.getElementById("user-id").value = u.userId;
         document.getElementById("user-name").value = u.name || "";
+        document.getElementById("user-kana").value = u.kana || ""; // ★追加
         document.getElementById("guardian-name").value = u.guardianName || "";
         document.getElementById("relation").value = u.relation || "";
         document.getElementById("tel-1").value = u.tel1 || "";
@@ -903,6 +906,7 @@
 
   function saveUserData() {
     const name = document.getElementById("user-name").value.trim();
+    const kana = document.getElementById("user-kana").value.trim(); // ★追加
     const bday = document.getElementById("user-birthday").value;
     const id = document.getElementById("user-id").value;
     const guardianName = document.getElementById("guardian-name").value.trim();
@@ -915,6 +919,7 @@
     const payload = {
       userId: id || null,
       name: name,
+      kana: kana, // ★追加
       birthday: bday,
       guardianName: guardianName,
       relation: relation,
@@ -941,6 +946,7 @@
     document.getElementById("user-id").value = "";
     document.getElementById("search-id").value = "";
     document.getElementById("user-name").value = "";
+    document.getElementById("user-kana").value = ""; // ★追加
     document.getElementById("guardian-name").value = "";
     document.getElementById("relation").value = "";
     document.getElementById("tel-1").value = "";
@@ -954,7 +960,7 @@
     currentRegisteredUser = null;
   }
 
-  function createCardHtml(user, barcodeId) {
+function createCardHtml(user, barcodeId) {
     return `
       <div class="biz-card">
         <div class="card-header">
@@ -962,7 +968,10 @@
           <div class="card-badge">利用者カード</div>
         </div>
         <div class="card-middle">
-          <div class="card-name">${user.name}<span class="card-honorific"> 様</span></div>
+          <div class="card-name-group">
+            <div class="card-user-kana">${user.kana || ''}</div>
+            <div class="card-name">${user.name}<span class="card-honorific"> 様</span></div>
+          </div>
           <div class="card-id-text">ID: ${user.userId}</div>
         </div>
         <div class="card-barcode">
@@ -975,7 +984,7 @@
       </div>
     `;
   }
-
+  
   function displayCardPreview(user) {
     const previewContainer = document.getElementById("reg-card-preview");
     const output = document.getElementById("single-card-output");
