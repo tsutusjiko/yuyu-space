@@ -73,6 +73,13 @@
     .btn-purple { background-color: #805ad5; }
     .btn-clear { background-color: #95a5a6; }
 
+/* 名前検索の候補リスト */
+    .search-result-header { padding: 8px 12px; background: #ebf8ff; font-size: 12.5px; font-weight: bold; color: #2b6cb0; border-bottom: 1px solid #cbd5e0; display: flex; justify-content: space-between; align-items: center; }
+    .search-result-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #edf2f7; cursor: pointer; transition: background 0.15s; }
+    .search-result-item:hover { background: #e6fffa; }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-select-badge { background: #3182ce; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 4px; flex-shrink: 0; }
+    
     /* フォーム要素 */
     .form-group { display: flex; flex-direction: column; margin-bottom: 12px; }
     .form-group label { font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #4a5568; }
@@ -484,9 +491,16 @@
       <button class="btn btn-back" onclick="openScreen('staff-menu')">🏠 メニューへ</button>
     </div>
 
-    <div style="display:flex; gap:10px; margin-bottom:15px; background:#edf2f7; padding:12px; border-radius:8px;">
-      <input type="text" id="search-id" placeholder="登録済みID（6桁）で呼出" oninput="autoToHalfWidth(this)" style="padding:8px; flex:1; border:1px solid #cbd5e0; border-radius:4px;" onkeypress="if(event.key==='Enter') searchUser();">
-      <button class="btn btn-blue" onclick="searchUser()">🔍 検索・呼出</button>
+    <div style="background:#edf2f7; padding:12px; border-radius:8px; margin-bottom:15px;">
+      <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+        <input type="text" id="search-id" placeholder="登録済みID（6桁）で呼出" oninput="autoToHalfWidth(this)" style="padding:8px; flex:1; min-width:180px; border:1px solid #cbd5e0; border-radius:4px;" onkeypress="if(event.key==='Enter') searchUser();">
+        <button class="btn btn-blue" onclick="searchUser()">🔍 ID検索</button>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <input type="text" id="search-name" placeholder="名前・ふりがなで検索（例: 山田 / やまだ）" style="padding:8px; flex:1; min-width:180px; border:1px solid #cbd5e0; border-radius:4px;" onkeypress="if(event.key==='Enter') searchUsersByName();">
+        <button class="btn btn-blue" style="background-color:#2b6cb0;" onclick="searchUsersByName()">👤 名前検索</button>
+      </div>
+      <div id="name-search-results" style="display:none; margin-top:10px; background:white; border:1px solid #cbd5e0; border-radius:6px; max-height:240px; overflow-y:auto;"></div>
     </div>
 
     <input type="hidden" id="user-id">
@@ -887,29 +901,96 @@
     }
   }
 
+let searchedUserList = [];
+
+  function applyUserToForm(u) {
+    currentRegisteredUser = u;
+    document.getElementById("user-id").value = u.userId;
+    document.getElementById("user-name").value = u.name || "";
+    document.getElementById("user-kana").value = u.kana || "";
+    document.getElementById("guardian-name").value = u.guardianName || "";
+    document.getElementById("relation").value = u.relation || "";
+    document.getElementById("tel-1").value = u.tel1 || "";
+    document.getElementById("tel-2").value = u.tel2 || "";
+
+    if (u.birthday) {
+      setBirthdayValue(u.birthday);
+    } else {
+      document.getElementById("wareki-year").value = "";
+      document.getElementById("wareki-month").value = "";
+      document.getElementById("seireki-input").value = "";
+      document.getElementById("user-birthday").value = "";
+      updateDateDisplay();
+    }
+
+    document.getElementById("name-search-results").style.display = "none";
+    displayCardPreview(u);
+  }
+
   function searchUser() {
     const id = document.getElementById("search-id").value.trim();
     if (!id) return alert("検索するIDを入力してください");
 
-    fetch(`${GAS_API_URL}?action=getUserById&userId=${id}`)
+    fetch(`${GAS_API_URL}?action=getUserById&userId=${encodeURIComponent(id)}`)
       .then(res => res.json())
       .then(u => {
         if (!u || !u.userId) return alert("該当する利用者は見つかりませんでした");
-        currentRegisteredUser = u;
-        document.getElementById("user-id").value = u.userId;
-        document.getElementById("user-name").value = u.name || "";
-        document.getElementById("user-kana").value = u.kana || ""; // ★追加
-        document.getElementById("guardian-name").value = u.guardianName || "";
-        document.getElementById("relation").value = u.relation || "";
-        document.getElementById("tel-1").value = u.tel1 || "";
-        document.getElementById("tel-2").value = u.tel2 || "";
-        setBirthdayValue(u.birthday || "");
-        
-        displayCardPreview(u);
+        applyUserToForm(u);
       })
       .catch(err => alert("検索エラー: " + err.message));
   }
 
+  function searchUsersByName() {
+    const keyword = document.getElementById("search-name").value.trim();
+    const resultsBox = document.getElementById("name-search-results");
+    if (!keyword) return alert("検索する名前またはふりがなを入力してください");
+
+    resultsBox.style.display = "block";
+    resultsBox.innerHTML = "<div style='padding:12px; text-align:center; color:#718096;'>検索中...</div>";
+
+    fetch(`${GAS_API_URL}?action=searchUsersByName&keyword=${encodeURIComponent(keyword)}`)
+      .then(res => res.json())
+      .then(users => {
+        searchedUserList = users || [];
+        if (searchedUserList.length === 0) {
+          resultsBox.innerHTML = "<div style='padding:12px; text-align:center; color:#e53e3e; font-weight:bold;'>該当する利用者は見つかりませんでした</div>";
+          return;
+        }
+
+        let html = `
+          <div class="search-result-header">
+            <span>検索結果：${searchedUserList.length} 件（クリックして呼出）</span>
+            <button type="button" onclick="document.getElementById('name-search-results').style.display='none'" style="border:none; background:transparent; cursor:pointer; color:#4a5568; font-weight:bold;">✕ 閉じる</button>
+          </div>
+        `;
+        searchedUserList.forEach((u, idx) => {
+          html += `
+            <div class="search-result-item" onclick="selectSearchedUser(${idx})">
+              <div>
+                <div style="font-weight:bold; font-size:15px; color:#1a202c;">
+                  ${u.name} <span style="font-size:12px; font-weight:normal; color:#4a5568;">（${u.kana || 'ふりがな未登録'}）</span>
+                </div>
+                <div style="font-size:12px; color:#718096; margin-top:2px;">
+                  ID: <b>${u.userId}</b> ｜ 生年月: ${u.birthday || '-'} ｜ 保護者: ${u.guardianName || '-'}
+                </div>
+              </div>
+              <span class="search-select-badge">呼出</span>
+            </div>
+          `;
+        });
+        resultsBox.innerHTML = html;
+      })
+      .catch(err => {
+        resultsBox.innerHTML = `<div style='padding:12px; text-align:center; color:#e53e3e;'>検索エラー: ${err.message}</div>`;
+      });
+  }
+
+  function selectSearchedUser(idx) {
+    if (searchedUserList[idx]) {
+      applyUserToForm(searchedUserList[idx]);
+    }
+  }
+  
   function saveUserData() {
     const name = document.getElementById("user-name").value.trim();
     const kana = document.getElementById("user-kana").value.trim(); // ★追加
@@ -962,6 +1043,8 @@
     document.getElementById("seireki-input").value = "";
     document.getElementById("user-birthday").value = "";
     document.getElementById("reg-card-preview").style.display = "none";
+    document.getElementById("search-name").value = "";
+    document.getElementById("name-search-results").style.display = "none";
     updateDateDisplay();
     currentRegisteredUser = null;
   }
